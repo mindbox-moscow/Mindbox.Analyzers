@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mindbox.Analyzers", "Mindbo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mindbox.Analyzers.Tests", "Mindbox.Analyzers.Tests\Mindbox.Analyzers.Tests.csproj", "{0A89CA22-D3D9-4CA9-AFDB-5A0ED1D6AEA5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mindbox.Analyzers.ConsoleApplication", "Mindbox.Analyzers.ConsoleApplication\Mindbox.Analyzers.ConsoleApplication.csproj", "{6297D08E-6042-4CF5-81F4-35842DB7BFB2}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution Files", "{9E385A18-FC7F-452D-9569-8E01226034F8}"
 EndProject
 Global
@@ -25,10 +23,6 @@ Global
 		{0A89CA22-D3D9-4CA9-AFDB-5A0ED1D6AEA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A89CA22-D3D9-4CA9-AFDB-5A0ED1D6AEA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A89CA22-D3D9-4CA9-AFDB-5A0ED1D6AEA5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6297D08E-6042-4CF5-81F4-35842DB7BFB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6297D08E-6042-4CF5-81F4-35842DB7BFB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6297D08E-6042-4CF5-81F4-35842DB7BFB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6297D08E-6042-4CF5-81F4-35842DB7BFB2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
