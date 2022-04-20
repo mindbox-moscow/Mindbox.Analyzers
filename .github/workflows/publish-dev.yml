@@ -21,13 +21,13 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build ./Mindbox.LibraryTemplate.sln --configuration Release --no-restore
+        run: dotnet build ./Mindbox.Analyzers.sln --configuration Release --no-restore
 
       - name: Test
         run: dotnet test --no-restore
 
       - name: Pack
-        run: dotnet pack ./Mindbox.LibraryTemplate.sln -c Release -p:BuildNumber=${{ github.run_number }} -p:VersionTag="-dev"
+        run: dotnet pack ./Mindbox.Analyzers.sln -c Release -p:BuildNumber=${{ github.run_number }} -p:VersionTag="-dev"
 
       - name: Publish
         run: dotnet nuget push **/*.nupkg -k ${{secrets.MINDBOX_PRIVATE_NUGET_AUTH_TOKEN}} -s https://mindbox.myget.org/F/mindbox-private/api/v2

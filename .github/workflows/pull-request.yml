@@ -18,7 +18,7 @@ jobs:
         run: dotnet restore          
 
       - name: Build
-        run: dotnet build ./Mindbox.LibraryTemplate.sln --configuration Release --no-restore
+        run: dotnet build ./Mindbox.Analyzers.sln --configuration Release --no-restore
 
       - name: Test
         run: dotnet test --no-restore
