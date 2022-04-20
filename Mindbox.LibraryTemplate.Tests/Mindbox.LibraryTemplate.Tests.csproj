@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+	    <TargetFramework>net6.0</TargetFramework>
+	    <LangVersion>latest</LangVersion>
+	    <IsPackable>false</IsPackable>
+	    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	    <WarningsAsErrors />
+	    <Nullable>enable</Nullable>
+	    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+	    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Include="..\AssemblyInfo.cs" Link="AssemblyInfo.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+        <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.0.64">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="MSTest.TestAdapter" Version="2.2.8" />
+        <PackageReference Include="MSTest.TestFramework" Version="2.2.8" />
+        <PackageReference Include="coverlet.collector" Version="3.1.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Mindbox.Analyzers.V3" Version="4.0.10" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Mindbox.LibraryTemplate\Mindbox.LibraryTemplate.csproj" />
+    </ItemGroup>
+
+</Project>
