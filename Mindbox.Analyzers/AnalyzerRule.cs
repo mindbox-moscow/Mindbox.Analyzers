@@ -31,6 +31,16 @@ namespace MindboxAnalyzers
 		/// <param name="foundProblems">Коллекция найденных несоответствий правилу. <c>null</c>, если всё хорошо.</param>
 		void AnalyzeLine(SyntaxTree tree, TextLine line, string lineString, out ICollection<Diagnostic> foundProblems);
 	}
+
+	public interface ISemanticModelAnalyzerRule : IAnalyzerRule
+	{
+		/// <summary>
+		/// Проанлазировать семантическую модель
+		/// </summary>
+		/// <param name="model">Семантическая модель</param>
+		/// <param name="foundProblems">Коллекция найденных несоответствий правилу. <c>null</c>, если всё хорошо.</param>
+		void AnalyzeModel(SemanticModel model, out ICollection<Diagnostic> foundProblems);
+	}
 	
 	public abstract class AnalyzerRule : IAnalyzerRule
 	{

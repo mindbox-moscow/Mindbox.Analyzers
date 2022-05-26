@@ -12,7 +12,7 @@ namespace Mindbox.Analyzers.ConsoleApplication
 {
     internal class Program
     {
-        private const string SolutionPath = @"/Users/tsyrulnikov/RiderProjects/Solution1/Solution1.sln";
+        private const string SolutionPath = @"/Users/tsyrulnikov/Mindbox/DirectCRM/DirectCrmTrunk.sln";
         
         public static void Main(string[] args)
         {
@@ -75,7 +75,7 @@ namespace Mindbox.Analyzers.ConsoleApplication
                     }
                 }
             }
-
+            
             return diagnostics;
         }
     }
