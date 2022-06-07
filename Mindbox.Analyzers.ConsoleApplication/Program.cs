@@ -11,6 +11,8 @@ namespace Mindbox.Analyzers.ConsoleApplication
     {
         private const string SolutionPath = @"/Users/savelijsivkov/RiderProjects/ConsoleApp1/ConsoleApp1.sln";
         
+        private static readonly string[] DiagnosticIDsToSuppress = { "Mindbox1025", "Mindbox1026" };
+
         public static void Main(string[] args)
         {
             Console.WriteLine($"Before solution opened: {DateTime.Now}");
@@ -39,6 +41,13 @@ namespace Mindbox.Analyzers.ConsoleApplication
             foreach (var diagnostic in diagnostics)
             {
                 var descriptor = diagnostic.Descriptor.Id;
+
+                if (DiagnosticIDsToSuppress.Any() && !DiagnosticIDsToSuppress.Contains(descriptor))
+                {
+                    Console.WriteLine($"Ignoring diagnostic {descriptor} as it is not in the list of Diagnostic IDs to suppress");
+                    continue;
+                }
+                
                 var message = diagnostic.GetMessage();
                 var lineStart = diagnostic.Location.GetLineSpan().StartLinePosition.Line;
                 var lineEnd = diagnostic.Location.GetLineSpan().EndLinePosition.Line;
