@@ -51,7 +51,14 @@ namespace Mindbox.Analyzers.ConsoleApplication
                 var message = diagnostic.GetMessage();
                 var lineStart = diagnostic.Location.GetLineSpan().StartLinePosition.Line;
                 var lineEnd = diagnostic.Location.GetLineSpan().EndLinePosition.Line;
-                var codeInQuestion = diagnostic.Location.SourceTree.GetText().ToString().Split('\n')
+                var sourceTree = diagnostic.Location.SourceTree;
+
+                if (sourceTree is null)
+                {
+                    throw new InvalidOperationException($"sourceTree is null for diagnostic {descriptor} ({diagnostic.Location}). It is required. Please debug to investigate.");
+                }
+                
+                var codeInQuestion = sourceTree.GetText().ToString().Split('\n')
                     .Select(x => x.Trim()).Skip(lineStart).Take(lineEnd - lineStart + 1);
                 Console.WriteLine($"  - {descriptor} \"{message}\" on lin{(lineStart == lineEnd ? $"e {lineStart}" : $"es {lineStart} to {lineEnd} inclusive")}");
 
@@ -59,7 +66,7 @@ namespace Mindbox.Analyzers.ConsoleApplication
                 Console.WriteLine(string.Join("\n", codeInQuestion.Select(x => "    " + x)));
                 Console.ResetColor();
 
-                var filename = diagnostic.Location.SourceTree.FilePath;
+                var filename = sourceTree.FilePath;
                 var filects = new List<string>(File.ReadAllLines(filename));
                 filects.Insert(insertionShift + lineStart, $"#pragma warning disable {descriptor}");
                 filects.Insert(insertionShift + lineEnd + 2, $"#pragma warning restore {descriptor}");
