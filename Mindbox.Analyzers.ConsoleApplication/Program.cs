@@ -12,7 +12,7 @@ namespace Mindbox.Analyzers.ConsoleApplication
 {
     internal class Program
     {
-        private const string SolutionPath = @"/Users/tsyrulnikov/Mindbox/DirectCRM/DirectCrmTrunk.sln";
+        private const string SolutionPath = @"/Users/savelijsivkov/RiderProjects/ConsoleApp1/ConsoleApp1.sln";
         
         public static void Main(string[] args)
         {
@@ -36,9 +36,30 @@ namespace Mindbox.Analyzers.ConsoleApplication
 
             var diagnostics = GetSortedDiagnosticsFromDocuments(new MindboxAnalyzer(), originalSolution);
 
+            int insertionShift = 0; // we insert new lines, but diagnostics lines stay as if there were no new lines
+
+            Console.WriteLine($"Found {diagnostics.Count} diagnostic messages{(diagnostics.Count > 0 ? ':' : '.')}");
             foreach (var diagnostic in diagnostics)
             {
-                Console.WriteLine(diagnostic.GetMessage());
+                var descriptor = diagnostic.Descriptor.Id;
+                var message = diagnostic.GetMessage();
+                var lineStart = diagnostic.Location.GetLineSpan().StartLinePosition.Line;
+                var lineEnd = diagnostic.Location.GetLineSpan().EndLinePosition.Line;
+                var codeInQuestion = diagnostic.Location.SourceTree.GetText().ToString().Split('\n')
+                    .Select(x => x.Trim()).Skip(lineStart).Take(lineEnd - lineStart + 1);
+                Console.WriteLine($"  - {descriptor} \"{message}\" on lin{(lineStart == lineEnd ? $"e {lineStart}" : $"es {lineStart} to {lineEnd} inclusive")}");
+
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.WriteLine(string.Join("\n", codeInQuestion.Select(x => "    " + x)));
+                Console.ResetColor();
+
+                var filename = diagnostic.Location.SourceTree.FilePath;
+                var filects = new List<string>(File.ReadAllLines(filename));
+                filects.Insert(insertionShift + lineStart, $"#pragma warning disable {descriptor}");
+                filects.Insert(insertionShift + lineEnd + 2, $"#pragma warning restore {descriptor}");
+                File.WriteAllLines(filename, filects);
+
+                insertionShift += 2; // pragma disable and pragma restore lines
             }
 
             Console.WriteLine($"FINISHED {DateTime.Now}");

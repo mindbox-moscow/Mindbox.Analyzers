@@ -13,7 +13,7 @@ namespace MindboxAnalyzers.Rules
 			: base(
 				ruleId: "Mindbox1025",
 				title: "Запрет на использование MAHC как сервис-локатора",
-				messageFormat: "Нельзя использовать Get у ModelApplicationHostController'a. Используйте DI вместо.",
+				messageFormat: "Нельзя использовать Get у ModelApplicationHostController'a. Используйте DI через конструктор.",
 				description: "Запрещает вызывать Get<> у ModelApplicationHostController"
 			)
 		{
