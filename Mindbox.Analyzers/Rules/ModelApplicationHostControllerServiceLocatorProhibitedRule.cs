@@ -10,9 +10,9 @@ namespace MindboxAnalyzers.Rules
 		public ModelApplicationHostControllerServiceLocatorProhibitedRule()
 			: base(
 				ruleId: "Mindbox1025",
-				title: "Запрет на использование MAHC как сервис-локатора",
-				messageFormat: "Нельзя использовать Get у ModelApplicationHostController'a. Используйте DI через конструктор.",
-				description: "Запрещает вызывать Get<> у ModelApplicationHostController"
+				title: "Forbids to use ModelApplicationHostController as service locator",
+				messageFormat: "Cannot call ModelApplicationHostController.Get method. Use constructor-based DI.",
+				description: "Forbids to call ModelApplicationHostController.Get"
 			)
 		{
 		}

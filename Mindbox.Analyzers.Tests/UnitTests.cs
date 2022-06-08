@@ -102,7 +102,7 @@ namespace MindboxAnalyzers.Tests
 			var expected = new DiagnosticResult
 			{
 				Id = MindboxAnalyzer.OnlyTabsShouldBeUsedForIndentationRuleId,
-				Message = "Для отступа используются пробелы",
+				Message = "Indentation with spaces is prohibited",
 				Severity = DiagnosticSeverity.Warning,
 				Locations = new[]
 				{
@@ -120,7 +120,7 @@ namespace MindboxAnalyzers.Tests
 			var expected = new DiagnosticResult
 			{
 				Id = MindboxAnalyzer.NoRegionsInsideMethodsRuleId,
-				Message = "Использование региона внутри метода",
+				Message = "Regions shouldn't be used inside a method",
 				Severity = DiagnosticSeverity.Warning,
 				Locations = new[]
 				{

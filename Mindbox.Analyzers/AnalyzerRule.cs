@@ -23,22 +23,22 @@ namespace MindboxAnalyzers
 	public interface ISingleLineAnalyzerRule : IAnalyzerRule
 	{
 		/// <summary>
-		/// Проанлазировать строку
+		/// Analyze the line
 		/// </summary>
-		/// <param name="tree">Синатксическое дерево</param>
-		/// <param name="line">Строка файла</param>
-		/// <param name="lineString">Строковое представление строки файла</param>
-		/// <param name="foundProblems">Коллекция найденных несоответствий правилу. <c>null</c>, если всё хорошо.</param>
+		/// <param name="tree">Syntactic tree</param>
+		/// <param name="line">Line number in file</param>
+		/// <param name="lineString">Line contents in file</param>
+		/// <param name="foundProblems">Collection of found problems. If everything is fine, <c>null</c> is returned.</param>
 		void AnalyzeLine(SyntaxTree tree, TextLine line, string lineString, out ICollection<Diagnostic> foundProblems);
 	}
 
 	public interface ISemanticModelAnalyzerRule : IAnalyzerRule
 	{
 		/// <summary>
-		/// Проанлазировать семантическую модель
+		/// Analyze the semantic model
 		/// </summary>
-		/// <param name="model">Семантическая модель</param>
-		/// <param name="foundProblems">Коллекция найденных несоответствий правилу. <c>null</c>, если всё хорошо.</param>
+		/// <param name="model">Semantic model</param>
+		/// <param name="foundProblems">Collection of found problems. If everything is fine, <c>null</c> is returned.</param>
 		void AnalyzeModel(SemanticModel model, out ICollection<Diagnostic> foundProblems);
 	}
 	

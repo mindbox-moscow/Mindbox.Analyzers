@@ -12,9 +12,9 @@ namespace MindboxAnalyzers.Rules
 		public CacheItemProviderKeyMustBeStaticRule()
 			: base(
 				ruleId: "Mindbox1015",
-				title: "Свойства и поля типа *CacheItemProviderKey должны быть статическими",
-				messageFormat: "Свойство/поле типа *CacheItemProviderKey должно являться статическим",
-				description: "Проверяет, чтобы поля и свойства типа *CacheItemProviderKey должны быть статическими во избежание утечки памяти."
+				title: "Properties and fields of type *CacheItemProviderKey should be static",
+				messageFormat: "Properties and fields of type *CacheItemProviderKey should be static",
+				description: "Checks that properties and fields of type *CacheItemProviderKey should be static in order to avoid memory leaks."
 			)
 		{
 		}

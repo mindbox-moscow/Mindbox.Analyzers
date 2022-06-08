@@ -11,9 +11,9 @@ namespace MindboxAnalyzers.Rules
 		public NameOfInColumnAttributesRequiredRule()
 			: base(
 				ruleId: "Mindbox2002",
-				title: "Вместо указания имени поля строкой должен использоваться оператор nameof",
-				messageFormat: "Название поля строкой вместо использования nameof",
-				description: "Вместо указания имени поля строкой должен использоваться оператор nameof")
+				title: "Instead of specifying the field name as a string nameof operator should be used",
+				messageFormat: "Use nameof instead of specifying the field name",
+				description: "Instead of specifying the field name as a string nameof operator should be used")
 		{
 		}
 

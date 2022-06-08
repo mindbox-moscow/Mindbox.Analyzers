@@ -12,9 +12,9 @@ namespace MindboxAnalyzers.Rules
 		public NoRegionsInsideMethodRule()
 			: base(
 				ruleId: "Mindbox2000",
-				title: "Регионы не должны использоваться внутри методов",
-				messageFormat: "Использование региона внутри метода",
-				description: "Проверяет, что директивы #region не используются внутри методов")
+				title: "Regions shouldn't be used inside a method",
+				messageFormat: "Regions shouldn't be used inside a method",
+				description: "Makes sure that #region directives aren't used inside a method")
 		{
 		}
 

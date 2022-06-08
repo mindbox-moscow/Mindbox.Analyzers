@@ -10,9 +10,9 @@ namespace MindboxAnalyzers.Rules
 		public NamedObjectModelConfigurationRegisterProhibitedRule()
 			: base(
 				ruleId: "Mindbox1026",
-				title: "Запрет на использование регистрации неймдобъектов через INamedObjectModelConfiguration.Register",
-				messageFormat: "Нельзя использовать Register у INamedObjectModelConfiguration'a. Используйте IServiceCollection.AddXXX (Startup.cs).",
-				description: "Запрещает вызывать Register у INamedObjectModelConfiguration"
+				title: "Forbids to register named objects through INamedObjectModelConfiguration.Register",
+				messageFormat: "Cannot use INamedObjectModelConfiguration.Register. Use IServiceCollection.AddXXX in Startup.cs.",
+				description: "Forbids to register named objects through INamedObjectModelConfiguration.Register"
 			)
 		{
 		}
