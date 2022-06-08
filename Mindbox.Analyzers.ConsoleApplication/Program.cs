@@ -35,8 +35,6 @@ namespace Mindbox.Analyzers.ConsoleApplication
 
             var diagnostics = GetSortedDiagnosticsFromDocuments(new MindboxAnalyzer(), originalSolution);
 
-            int insertionShift = 0; // we insert new lines, but diagnostics lines stay as if there were no new lines
-
             Console.WriteLine($"Found {diagnostics.Count} diagnostic messages{(diagnostics.Count > 0 ? ':' : '.')}");
             foreach (var diagnostic in diagnostics)
             {
@@ -65,19 +63,19 @@ namespace Mindbox.Analyzers.ConsoleApplication
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.WriteLine(string.Join("\n", codeInQuestion.Select(x => "    " + x)));
                 Console.ResetColor();
-
-                var filename = sourceTree.FilePath;
-                var filects = new List<string>(File.ReadAllLines(filename));
-                filects.Insert(insertionShift + lineStart, $"#pragma warning disable {descriptor}");
-                filects.Insert(insertionShift + lineEnd + 2, $"#pragma warning restore {descriptor}");
-                File.WriteAllLines(filename, filects);
-
-                insertionShift += 2; // pragma disable and pragma restore lines
             }
 
-            Console.WriteLine($"FINISHED {DateTime.Now}");
+            var changedFiles = new DiagnosticPragmaIgnoreAdder(DiagnosticIDsToSuppress).AddPragmasToCode(diagnostics);
+            foreach (var (filename, newFileContents) in changedFiles)
+            {
+                File.WriteAllText(filename, newFileContents);
+            }
+
+            Console.WriteLine($"FINISHED {DateTime.Now}. Updated {changedFiles.Count} files.");
             Console.ReadKey();
         }
+
+        
 
         private static List<Diagnostic> GetSortedDiagnosticsFromDocuments(DiagnosticAnalyzer analyzer, Solution solution)
         {
