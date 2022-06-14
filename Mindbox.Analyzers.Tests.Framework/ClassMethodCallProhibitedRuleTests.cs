@@ -13,45 +13,25 @@ public class ClassMethodCallProhibitedRuleTests
     private readonly ModelApplicationHostControllerServiceLocatorProhibitedRule _mahcRule = new();
     private readonly NamedObjectModelConfigurationRegisterProhibitedRule _nomcRule = new();
 
-    private const string NomcCodeUsings = @"using Itc.Commons; using Itc.Commons.Model;";
-
-    private const string NamedObjectsDefinition = @"public class TestNamedObject : NamedObject
-{
-    public TestNamedObject(string systemName) 
-        : base(systemName, null, null)
-    {
-    }
-}
-
-public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
-{
-    public TestNamedObjectComponent()
-    {
-        TestNC1 = Add(new TestNamedObject(""TestNC1""));
-        TestNC2 = Add(new TestNamedObject(""TestNC2""));
-        TestNC3 = Add(new TestNamedObject(""TestNC3""));
-    }
-    
-    public TestNamedObject TestNC1 { get; }
-    public TestNamedObject TestNC2 { get; }
-    public TestNamedObject TestNC3 { get; }
-}
-";
-
     private static SemanticModel GetSemanticModelFromSourceCode(string filename, string sourceCode)
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode, new CSharpParseOptions().WithLanguageVersion(LanguageVersion.CSharp10), filename);
+        var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode,
+            new CSharpParseOptions().WithLanguageVersion(LanguageVersion.CSharp10), filename);
         var compilation = CSharpCompilation.Create("TestSolution")
             .AddReferences(MetadataReference.CreateFromFile(
                     typeof(ModelApplicationHostController).Assembly.Location), // Load Commons into test compilation
                 MetadataReference.CreateFromFile(
-                    Assembly.Load("Mindbox.I18n, Version=1.3.2.0, Culture=neutral, PublicKeyToken=null").Location), // Load Mindbox.I18n into test compilation
+                    Assembly.Load("Mindbox.I18n, Version=1.3.2.0, Culture=neutral, PublicKeyToken=null")
+                        .Location), // Load Mindbox.I18n into test compilation
                 MetadataReference.CreateFromFile(
-                    Assembly.Load("System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location), // Load System.Private.CoreLib into test compilation
+                    Assembly.Load(
+                            "System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
+                        .Location), // Load System.Private.CoreLib into test compilation
                 MetadataReference.CreateFromFile(
                     typeof(Console).Assembly.Location), // Load System.Console into test compilation
                 MetadataReference.CreateFromFile(
-                    Assembly.Load("System.Runtime, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location)) // Load System.Runtime into test compilation
+                    Assembly.Load("System.Runtime, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
+                        .Location)) // Load System.Runtime into test compilation
             .AddSyntaxTrees(syntaxTree);
 
         var diagnostics = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToArray();
@@ -81,8 +61,7 @@ public class Program
         var semanticModel = GetSemanticModelFromSourceCode("Program.cs", givenSource);
         _mahcRule.AnalyzeModel(semanticModel, out var problems);
 
-        var changedFiles = new DiagnosticPragmaIgnoreAdder().AddPragmasToCode(problems);
-        Assert.AreEqual(0, changedFiles.Count);
+        Assert.AreEqual(0, problems.Count);
     }
 
     [TestMethod]
@@ -97,26 +76,17 @@ public class Program
         var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
     }
 }";
-        string expectedSource = @$"using System;
-
-public class Program
-{{
-    public static void Main(string[] args)
-    {{
-#pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-#pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
-    }}
-}}";
 
         const string filename = "Program.cs";
 
         var semanticModel = GetSemanticModelFromSourceCode(filename, givenSource);
         _mahcRule.AnalyzeModel(semanticModel, out var problems);
 
-        var changedFiles = new DiagnosticPragmaIgnoreAdder().AddPragmasToCode(problems);
-        Assert.AreEqual(1, changedFiles.Count);
-        Assert.AreEqual(expectedSource, changedFiles[filename]);
+        Assert.AreEqual(1, problems.Count);
+        var problem = problems.Single();
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problem.Id);
+        Assert.AreEqual(6, problem.Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(6, problem.Location.GetLineSpan().EndLinePosition.Line);
     }
 
     [TestMethod]
@@ -133,30 +103,21 @@ public class Program
         var service2 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
     }
 }";
-        string expectedSource = @$"using System;
-
-public class Program
-{{
-    public static void Main(string[] args)
-    {{
-#pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-        var service1 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-#pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
-        var separator = 0;
-#pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-        var service2 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-#pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
-    }}
-}}";
 
         const string filename = "Program.cs";
 
         var semanticModel = GetSemanticModelFromSourceCode(filename, givenSource);
-        _mahcRule.AnalyzeModel(semanticModel, out var problems);
+        _mahcRule.AnalyzeModel(semanticModel, out var problemCollection);
+        var problems = problemCollection.ToArray();
 
-        var changedFiles = new DiagnosticPragmaIgnoreAdder().AddPragmasToCode(problems);
-        Assert.AreEqual(1, changedFiles.Count);
-        Assert.AreEqual(expectedSource, changedFiles[filename]);
+        Assert.AreEqual(2, problems.Length);
+
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[0].Id);
+        Assert.AreEqual(6, problems[0].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(6, problems[0].Location.GetLineSpan().EndLinePosition.Line);
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[1].Id);
+        Assert.AreEqual(8, problems[1].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(8, problems[1].Location.GetLineSpan().EndLinePosition.Line);
     }
 
     [TestMethod]
@@ -172,27 +133,21 @@ public class Program
         var service2 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
     }
 }";
-        string expectedSource = @$"using System;
-
-public class Program
-{{
-    public static void Main(string[] args)
-    {{
-#pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-        var service1 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-        var service2 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-#pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
-    }}
-}}";
 
         const string filename = "Program.cs";
 
         var semanticModel = GetSemanticModelFromSourceCode(filename, givenSource);
-        _mahcRule.AnalyzeModel(semanticModel, out var problems);
+        _mahcRule.AnalyzeModel(semanticModel, out var problemCollection);
+        var problems = problemCollection.ToArray();
 
-        var changedFiles = new DiagnosticPragmaIgnoreAdder().AddPragmasToCode(problems);
-        Assert.AreEqual(1, changedFiles.Count);
-        Assert.AreEqual(expectedSource, changedFiles[filename]);
+        Assert.AreEqual(2, problems.Length);
+
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[0].Id);
+        Assert.AreEqual(6, problems[0].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(6, problems[0].Location.GetLineSpan().EndLinePosition.Line);
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[1].Id);
+        Assert.AreEqual(7, problems[1].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(7, problems[1].Location.GetLineSpan().EndLinePosition.Line);
     }
 
     [TestMethod]
@@ -209,28 +164,18 @@ public class Program
             .Get<Itc.Commons.Model.ITenantValidator>();
     }
 }";
-        string expectedSource = @$"using System;
-
-public class Program
-{{
-    public static void Main(string[] args)
-    {{
-#pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-        var service = Itc.Commons.Model.ModelApplicationHostController
-            .Instance
-            .Get<Itc.Commons.Model.ITenantValidator>();
-#pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
-    }}
-}}";
 
         const string filename = "Program.cs";
 
         var semanticModel = GetSemanticModelFromSourceCode(filename, givenSource);
-        _mahcRule.AnalyzeModel(semanticModel, out var problems);
+        _mahcRule.AnalyzeModel(semanticModel, out var problemCollection);
+        var problem = problemCollection.Single();
 
-        var changedFiles = new DiagnosticPragmaIgnoreAdder().AddPragmasToCode(problems);
-        Assert.AreEqual(1, changedFiles.Count);
-        Assert.AreEqual(expectedSource, changedFiles[filename]);
+        Assert.AreEqual(1, problemCollection.Count);
+
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problem.Id);
+        Assert.AreEqual(6, problem.Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(8, problem.Location.GetLineSpan().EndLinePosition.Line);
     }
 
     [TestMethod]
@@ -251,34 +196,21 @@ public class Program
             .Get<Itc.Commons.Model.ITenantValidator>();
     }
 }";
-        string expectedSource = @$"using System;
-
-public class Program
-{{
-    public static void Main(string[] args)
-    {{
-#pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-        var service1 = Itc.Commons.Model.ModelApplicationHostController
-            .Instance
-            .Get<Itc.Commons.Model.ITenantValidator>();
-#pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
-        var separator = 0;
-#pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-        var service2 = Itc.Commons.Model.ModelApplicationHostController
-            .Instance
-            .Get<Itc.Commons.Model.ITenantValidator>();
-#pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
-    }}
-}}";
 
         const string filename = "Program.cs";
 
         var semanticModel = GetSemanticModelFromSourceCode(filename, givenSource);
-        _mahcRule.AnalyzeModel(semanticModel, out var problems);
+        _mahcRule.AnalyzeModel(semanticModel, out var problemCollection);
+        var problems = problemCollection.ToArray();
 
-        var changedFiles = new DiagnosticPragmaIgnoreAdder().AddPragmasToCode(problems);
-        Assert.AreEqual(1, changedFiles.Count);
-        Assert.AreEqual(expectedSource, changedFiles[filename]);
+        Assert.AreEqual(2, problems.Length);
+
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[0].Id);
+        Assert.AreEqual(6, problems[0].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(8, problems[0].Location.GetLineSpan().EndLinePosition.Line);
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[1].Id);
+        Assert.AreEqual(10, problems[1].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(12, problems[1].Location.GetLineSpan().EndLinePosition.Line);
     }
 
     [TestMethod]
@@ -298,43 +230,42 @@ public class Program
             .Get<Itc.Commons.Model.ITenantValidator>();
     }
 }";
-        string expectedSource = @$"using System;
-
-public class Program
-{{
-    public static void Main(string[] args)
-    {{
-#pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-        var service1 = Itc.Commons.Model.ModelApplicationHostController
-            .Instance
-            .Get<Itc.Commons.Model.ITenantValidator>();
-        var service2 = Itc.Commons.Model.ModelApplicationHostController
-            .Instance
-            .Get<Itc.Commons.Model.ITenantValidator>();
-#pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
-    }}
-}}";
 
         const string filename = "Program.cs";
 
         var semanticModel = GetSemanticModelFromSourceCode(filename, givenSource);
-        _mahcRule.AnalyzeModel(semanticModel, out var problems);
+        _mahcRule.AnalyzeModel(semanticModel, out var problemCollection);
+        var problems = problemCollection.ToArray();
 
-        var changedFiles = new DiagnosticPragmaIgnoreAdder().AddPragmasToCode(problems);
-        Assert.AreEqual(1, changedFiles.Count);
-        Assert.AreEqual(expectedSource, changedFiles[filename]);
+        Assert.AreEqual(2, problems.Length);
+
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[0].Id);
+        Assert.AreEqual(6, problems[0].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(8, problems[0].Location.GetLineSpan().EndLinePosition.Line);
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[1].Id);
+        Assert.AreEqual(9, problems[1].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(11, problems[1].Location.GetLineSpan().EndLinePosition.Line);
     }
 
     #endregion
 
     #region MAHC Multiple file tests
 
+    private struct File
+    {
+        public string Filename;
+        public string Source;
+    }
+
     [TestMethod]
     public void MAHC_MultipleFile_NoCalls_DoesntChangeSourceCode()
     {
-        var files = new (string filename, string source, string expected)[]
+        var files = new File[]
         {
-            ("Program.cs", @"using System;
+            new()
+            {
+                Filename = "Program.cs",
+                Source = @"using System;
 
 public class Program
 {
@@ -342,24 +273,12 @@ public class Program
     {
         Console.WriteLine(""No MAHC calls!"");
     }
-}", @"using System;
-
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        Console.WriteLine(""No MAHC calls!"");
-    }
-}"),
-            ("MyClass.cs", @"using System;
-
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        Console.WriteLine(""No MAHC calls from another method!"");
-    }
-}", @"using System;
+}"
+            },
+            new()
+            {
+                Filename = "MyClass.cs",
+                Source = @"using System;
 
 public class Program
 {
@@ -367,29 +286,32 @@ public class Program
     {
         Console.WriteLine(""No MAHC calls from another method!"");
     }
-}"),
+}"
+            }
         };
 
         var allProblems = new List<Diagnostic>();
 
-        foreach (var (filename, source, _) in files)
+        foreach (var file in files)
         {
-            var semanticModel = GetSemanticModelFromSourceCode(filename, source);
+            var semanticModel = GetSemanticModelFromSourceCode(file.Filename, file.Source);
             _mahcRule.AnalyzeModel(semanticModel, out var problems);
 
             allProblems.AddRange(problems);
         }
 
-        var changedFiles = new DiagnosticPragmaIgnoreAdder().AddPragmasToCode(allProblems);
-        Assert.AreEqual(0, changedFiles.Count);
+        Assert.AreEqual(0, allProblems.Count);
     }
 
     [TestMethod]
     public void MAHC_MultipleFile_OneOutOfTwoCalls()
     {
-        var files = new (string filename, string source, string expected)[]
+        var files = new File[]
         {
-            ("Program.cs", @"using System;
+            new()
+            {
+                Filename = "Program.cs",
+                Source = @"using System;
 
 public class Program
 {
@@ -397,18 +319,12 @@ public class Program
     {
         var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
     }
-}", @$"using System;
-
-public class Program
-{{
-    public static void Main(string[] args)
-    {{
-#pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-#pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
-    }}
-}}"),
-            ("MyClass.cs", @"using System;
+}"
+            },
+            new()
+            {
+                Filename = "MyClass.cs",
+                Source = @"using System;
 
 public class Program
 {
@@ -416,38 +332,37 @@ public class Program
     {
         Console.WriteLine(""No MAHC calls from another method!"");
     }
-}", @"using System;
-
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        Console.WriteLine(""No MAHC calls from another method!"");
-    }
-}"),
+}"
+            }
         };
 
         var allProblems = new List<Diagnostic>();
 
-        foreach (var (filename, source, _) in files)
+        foreach (var file in files)
         {
-            var semanticModel = GetSemanticModelFromSourceCode(filename, source);
+            var semanticModel = GetSemanticModelFromSourceCode(file.Filename, file.Source);
             _mahcRule.AnalyzeModel(semanticModel, out var problems);
 
             allProblems.AddRange(problems);
         }
 
-        var changedFiles = new DiagnosticPragmaIgnoreAdder().AddPragmasToCode(allProblems);
-        Assert.AreEqual(1, changedFiles.Count);
-        Assert.AreEqual(files[0].expected, changedFiles["Program.cs"]);
+        Assert.AreEqual(1, allProblems.Count);
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, allProblems[0].Id);
+        Assert.AreEqual(files[0].Filename, allProblems[0].Location.SourceTree?.FilePath);
+        Assert.AreEqual(6,
+            allProblems[0].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(6, allProblems[0].Location.GetLineSpan().EndLinePosition.Line);
     }
 
     [TestMethod]
     public void MAHC_MultipleFile_AllFilesCall()
     {
-        var files = new (string filename, string source, string expected)[]
+        var files = new File[]
         {
-            ("Program.cs", @"using System;
+            new()
+            {
+                Filename = "Program.cs",
+                Source = @"using System;
 
 public class Program
 {
@@ -455,18 +370,12 @@ public class Program
     {
         var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
     }
-}", @$"using System;
-
-public class Program
-{{
-    public static void Main(string[] args)
-    {{
-#pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-#pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
-    }}
-}}"),
-            ("MyClass.cs", @"using System;
+}"
+            },
+            new()
+            {
+                Filename = "MyClass.cs",
+                Source = @"using System;
 
 public class Program
 {
@@ -474,38 +383,63 @@ public class Program
     {
         var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
     }
-}", @$"using System;
-
-public class Program
-{{
-    public static void Main(string[] args)
-    {{
-#pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-#pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
-    }}
-}}"),
+}"
+            }
         };
 
         var allProblems = new List<Diagnostic>();
 
-        foreach (var (filename, source, _) in files)
+        foreach (var file in files)
         {
-            var semanticModel = GetSemanticModelFromSourceCode(filename, source);
+            var semanticModel = GetSemanticModelFromSourceCode(file.Filename, file.Source);
             _mahcRule.AnalyzeModel(semanticModel, out var problems);
 
             allProblems.AddRange(problems);
         }
 
-        var changedFiles = new DiagnosticPragmaIgnoreAdder().AddPragmasToCode(allProblems);
-        Assert.AreEqual(files.Length, changedFiles.Count);
-        Assert.AreEqual(files[0].expected, changedFiles["Program.cs"]);
-        Assert.AreEqual(files[1].expected, changedFiles["MyClass.cs"]);
+        Assert.AreEqual(2, allProblems.Count);
+
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, allProblems[0].Id);
+        Assert.AreEqual(files[0].Filename, allProblems[0].Location.SourceTree?.FilePath);
+        Assert.AreEqual(6,
+            allProblems[0].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(6, allProblems[0].Location.GetLineSpan().EndLinePosition.Line);
+
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, allProblems[1].Id);
+        Assert.AreEqual(files[1].Filename, allProblems[1].Location.SourceTree?.FilePath);
+        Assert.AreEqual(6,
+            allProblems[1].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(6, allProblems[1].Location.GetLineSpan().EndLinePosition.Line);
     }
 
     #endregion
 
     #region NOMC Tests
+
+    private const string NomcCodeUsings = @"using Itc.Commons; using Itc.Commons.Model;";
+
+    private const string NamedObjectsDefinition = @"public class TestNamedObject : NamedObject
+{
+    public TestNamedObject(string systemName) 
+        : base(systemName, null, null)
+    {
+    }
+}
+
+public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
+{
+    public TestNamedObjectComponent()
+    {
+        TestNC1 = Add(new TestNamedObject(""TestNC1""));
+        TestNC2 = Add(new TestNamedObject(""TestNC2""));
+        TestNC3 = Add(new TestNamedObject(""TestNC3""));
+    }
+    
+    public TestNamedObject TestNC1 { get; }
+    public TestNamedObject TestNC2 { get; }
+    public TestNamedObject TestNC3 { get; }
+}
+";
 
     [TestMethod]
     public void NOMC_NoCalls_DoesntChangeSourceCode()
@@ -523,11 +457,11 @@ public class TstModelPart : Module
 }}
 
 {NamedObjectsDefinition}";
+        
         var semanticModel = GetSemanticModelFromSourceCode("Program.cs", givenSource);
         _nomcRule.AnalyzeModel(semanticModel, out var problems);
 
-        var changedFiles = new DiagnosticPragmaIgnoreAdder().AddPragmasToCode(problems);
-        Assert.AreEqual(0, changedFiles.Count);
+        Assert.AreEqual(0, problems.Count);
     }
 
     [TestMethod]
@@ -546,30 +480,17 @@ public class TstModelPart : Module
 }}
 
 {NamedObjectsDefinition}";
-        string expectedSource = $@"{NomcCodeUsings}
-
-bool entryPoint = false; // Program does not contain a static 'Main' method suitable for an entry point
-
-public class TstModelPart : Module
-{{
-    protected override void RegisterDependencies(ModuleDependenciesConfiguration configuration)
-    {{
-#pragma warning disable {_nomcRule.DiagnosticDescriptor.Id}
-        Get<INamedObjectModelConfiguration>().Register<TestNamedObject, TestNamedObjectComponent>();
-#pragma warning restore {_nomcRule.DiagnosticDescriptor.Id}
-    }}
-}}
-
-{NamedObjectsDefinition}";
 
         const string filename = "Program.cs";
 
         var semanticModel = GetSemanticModelFromSourceCode(filename, givenSource);
         _nomcRule.AnalyzeModel(semanticModel, out var problems);
 
-        var changedFiles = new DiagnosticPragmaIgnoreAdder().AddPragmasToCode(problems);
-        Assert.AreEqual(1, changedFiles.Count);
-        Assert.AreEqual(expectedSource, changedFiles[filename]);
+        Assert.AreEqual(1, problems.Count);
+        var problem = problems.Single();
+        Assert.AreEqual(_nomcRule.DiagnosticDescriptor.Id, problem.Id);
+        Assert.AreEqual(8, problem.Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(8, problem.Location.GetLineSpan().EndLinePosition.Line);
     }
 
     #endregion
