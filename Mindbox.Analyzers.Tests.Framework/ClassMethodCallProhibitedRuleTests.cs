@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Itc.Commons.Model;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MindboxAnalyzers.Rules;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MindboxAnalyzers.Tests;
 
@@ -43,7 +40,7 @@ public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
 
     private static SemanticModel GetSemanticModelFromSourceCode(string filename, string sourceCode)
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode, null, filename);
+        var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode, new CSharpParseOptions().WithLanguageVersion(LanguageVersion.CSharp10), filename);
         var compilation = CSharpCompilation.Create("TestSolution")
             .AddReferences(MetadataReference.CreateFromFile(
                     typeof(ModelApplicationHostController).Assembly.Location), // Load Commons into test compilation
@@ -51,6 +48,8 @@ public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
                     Assembly.Load("Mindbox.I18n, Version=1.3.2.0, Culture=neutral, PublicKeyToken=null").Location), // Load Mindbox.I18n into test compilation
                 MetadataReference.CreateFromFile(
                     Assembly.Load("System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location), // Load System.Private.CoreLib into test compilation
+                MetadataReference.CreateFromFile(
+                    typeof(Console).Assembly.Location), // Load System.Console into test compilation
                 MetadataReference.CreateFromFile(
                     Assembly.Load("System.Runtime, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location)) // Load System.Runtime into test compilation
             .AddSyntaxTrees(syntaxTree);
@@ -70,9 +69,14 @@ public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
     [TestMethod]
     public void MAHC_NoCalls_DoesntChangeSourceCode()
     {
-        const string givenSource = @"public static void Main(string[] args)
+        const string givenSource = @"using System;
+
+public class Program
 {
-    Console.WriteLine(""No MAHC calls!"");
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(""No MAHC calls!"");
+    }
 }";
         var semanticModel = GetSemanticModelFromSourceCode("Program.cs", givenSource);
         _mahcRule.AnalyzeModel(semanticModel, out var problems);
@@ -84,15 +88,25 @@ public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
     [TestMethod]
     public void MAHC_OneSingleLineCall_WrapsInPragma()
     {
-        const string givenSource = @"public static void Main(string[] args)
+        const string givenSource = @"using System;
+
+public class Program
 {
-    var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+    public static void Main(string[] args)
+    {
+        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+    }
 }";
-        string expectedSource = @$"public static void Main(string[] args)
+        string expectedSource = @$"using System;
+
+public class Program
 {{
+    public static void Main(string[] args)
+    {{
 #pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-    var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
 #pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
+    }}
 }}";
 
         const string filename = "Program.cs";
@@ -108,21 +122,31 @@ public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
     [TestMethod]
     public void MAHC_TwoSeparatedSingleLineCalls_WrapsInTwoPragmas()
     {
-        const string givenSource = @"public static void Main(string[] args)
+        const string givenSource = @"using System;
+
+public class Program
 {
-    var service1 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-    var separator = 0;
-    var service2 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+    public static void Main(string[] args)
+    {
+        var service1 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+        var separator = 0;
+        var service2 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+    }
 }";
-        string expectedSource = @$"public static void Main(string[] args)
+        string expectedSource = @$"using System;
+
+public class Program
 {{
+    public static void Main(string[] args)
+    {{
 #pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-    var service1 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+        var service1 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
 #pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
-    var separator = 0;
+        var separator = 0;
 #pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-    var service2 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+        var service2 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
 #pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
+    }}
 }}";
 
         const string filename = "Program.cs";
@@ -138,17 +162,27 @@ public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
     [TestMethod]
     public void MAHC_TwoConsecutiveSingleLineCalls_WrapsInOnePragma()
     {
-        const string givenSource = @"public static void Main(string[] args)
+        const string givenSource = @"using System;
+
+public class Program
 {
-    var service1 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-    var service2 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+    public static void Main(string[] args)
+    {
+        var service1 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+        var service2 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+    }
 }";
-        string expectedSource = @$"public static void Main(string[] args)
+        string expectedSource = @$"using System;
+
+public class Program
 {{
+    public static void Main(string[] args)
+    {{
 #pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-    var service1 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-    var service2 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+        var service1 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+        var service2 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
 #pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
+    }}
 }}";
 
         const string filename = "Program.cs";
@@ -164,19 +198,29 @@ public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
     [TestMethod]
     public void MAHC_OneMultiLineCall_WrapsEntireCallInPragma()
     {
-        const string givenSource = @"public static void Main(string[] args)
+        const string givenSource = @"using System;
+
+public class Program
 {
-    var service = Itc.Commons.Model.ModelApplicationHostController
-        .Instance
-        .Get<Itc.Commons.Model.ITenantValidator>();
+    public static void Main(string[] args)
+    {
+        var service = Itc.Commons.Model.ModelApplicationHostController
+            .Instance
+            .Get<Itc.Commons.Model.ITenantValidator>();
+    }
 }";
-        string expectedSource = @$"public static void Main(string[] args)
+        string expectedSource = @$"using System;
+
+public class Program
 {{
+    public static void Main(string[] args)
+    {{
 #pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-    var service = Itc.Commons.Model.ModelApplicationHostController
-        .Instance
-        .Get<Itc.Commons.Model.ITenantValidator>();
+        var service = Itc.Commons.Model.ModelApplicationHostController
+            .Instance
+            .Get<Itc.Commons.Model.ITenantValidator>();
 #pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
+    }}
 }}";
 
         const string filename = "Program.cs";
@@ -192,29 +236,39 @@ public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
     [TestMethod]
     public void MAHC_TwoSeparatedMultiLineCalls_WrapsEntireCallsInTwoPragmas()
     {
-        const string givenSource = @"public static void Main(string[] args)
+        const string givenSource = @"using System;
+
+public class Program
 {
-    var service1 = Itc.Commons.Model.ModelApplicationHostController
-        .Instance
-        .Get<Itc.Commons.Model.ITenantValidator>();
-    var separator = 0;
-    var service2 = Itc.Commons.Model.ModelApplicationHostController
-        .Instance
-        .Get<Itc.Commons.Model.ITenantValidator>();
+    public static void Main(string[] args)
+    {
+        var service1 = Itc.Commons.Model.ModelApplicationHostController
+            .Instance
+            .Get<Itc.Commons.Model.ITenantValidator>();
+        var separator = 0;
+        var service2 = Itc.Commons.Model.ModelApplicationHostController
+            .Instance
+            .Get<Itc.Commons.Model.ITenantValidator>();
+    }
 }";
-        string expectedSource = @$"public static void Main(string[] args)
+        string expectedSource = @$"using System;
+
+public class Program
 {{
+    public static void Main(string[] args)
+    {{
 #pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-    var service1 = Itc.Commons.Model.ModelApplicationHostController
-        .Instance
-        .Get<Itc.Commons.Model.ITenantValidator>();
+        var service1 = Itc.Commons.Model.ModelApplicationHostController
+            .Instance
+            .Get<Itc.Commons.Model.ITenantValidator>();
 #pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
-    var separator = 0;
+        var separator = 0;
 #pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-    var service2 = Itc.Commons.Model.ModelApplicationHostController
-        .Instance
-        .Get<Itc.Commons.Model.ITenantValidator>();
+        var service2 = Itc.Commons.Model.ModelApplicationHostController
+            .Instance
+            .Get<Itc.Commons.Model.ITenantValidator>();
 #pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
+    }}
 }}";
 
         const string filename = "Program.cs";
@@ -230,25 +284,35 @@ public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
     [TestMethod]
     public void MAHC_TwoConsecutiveMultiLineCalls_WrapsEntireCallsInOnePragma()
     {
-        const string givenSource = @"public static void Main(string[] args)
+        const string givenSource = @"using System;
+
+public class Program
 {
-    var service1 = Itc.Commons.Model.ModelApplicationHostController
-        .Instance
-        .Get<Itc.Commons.Model.ITenantValidator>();
-    var service2 = Itc.Commons.Model.ModelApplicationHostController
-        .Instance
-        .Get<Itc.Commons.Model.ITenantValidator>();
+    public static void Main(string[] args)
+    {
+        var service1 = Itc.Commons.Model.ModelApplicationHostController
+            .Instance
+            .Get<Itc.Commons.Model.ITenantValidator>();
+        var service2 = Itc.Commons.Model.ModelApplicationHostController
+            .Instance
+            .Get<Itc.Commons.Model.ITenantValidator>();
+    }
 }";
-        string expectedSource = @$"public static void Main(string[] args)
+        string expectedSource = @$"using System;
+
+public class Program
 {{
+    public static void Main(string[] args)
+    {{
 #pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-    var service1 = Itc.Commons.Model.ModelApplicationHostController
-        .Instance
-        .Get<Itc.Commons.Model.ITenantValidator>();
-    var service2 = Itc.Commons.Model.ModelApplicationHostController
-        .Instance
-        .Get<Itc.Commons.Model.ITenantValidator>();
+        var service1 = Itc.Commons.Model.ModelApplicationHostController
+            .Instance
+            .Get<Itc.Commons.Model.ITenantValidator>();
+        var service2 = Itc.Commons.Model.ModelApplicationHostController
+            .Instance
+            .Get<Itc.Commons.Model.ITenantValidator>();
 #pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
+    }}
 }}";
 
         const string filename = "Program.cs";
@@ -270,19 +334,39 @@ public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
     {
         var files = new (string filename, string source, string expected)[]
         {
-            ("Program.cs", @"public static void Main(string[] args)
+            ("Program.cs", @"using System;
+
+public class Program
 {
-    Console.WriteLine(""No MAHC calls!"");
-}", @"public static void Main(string[] args)
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(""No MAHC calls!"");
+    }
+}", @"using System;
+
+public class Program
 {
-    Console.WriteLine(""No MAHC calls!"");
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(""No MAHC calls!"");
+    }
 }"),
-            ("MyClass.cs", @"public void MyClass()
+            ("MyClass.cs", @"using System;
+
+public class Program
 {
-    Console.WriteLine(""No MAHC calls from another method!"");
-}", @"public void MyClass()
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(""No MAHC calls from another method!"");
+    }
+}", @"using System;
+
+public class Program
 {
-    Console.WriteLine(""No MAHC calls from another method!"");
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(""No MAHC calls from another method!"");
+    }
 }"),
         };
 
@@ -305,21 +389,41 @@ public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
     {
         var files = new (string filename, string source, string expected)[]
         {
-            ("Program.cs", @"public static void Main(string[] args)
+            ("Program.cs", @"using System;
+
+public class Program
 {
-    var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-}", @$"public static void Main(string[] args)
+    public static void Main(string[] args)
+    {
+        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+    }
+}", @$"using System;
+
+public class Program
 {{
+    public static void Main(string[] args)
+    {{
 #pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-    var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
 #pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
+    }}
 }}"),
-            ("MyClass.cs", @"public void MyClass()
+            ("MyClass.cs", @"using System;
+
+public class Program
 {
-    Console.WriteLine(""No MAHC calls from another method!"");
-}", @"public void MyClass()
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(""No MAHC calls from another method!"");
+    }
+}", @"using System;
+
+public class Program
 {
-    Console.WriteLine(""No MAHC calls from another method!"");
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(""No MAHC calls from another method!"");
+    }
 }"),
         };
 
@@ -343,23 +447,43 @@ public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
     {
         var files = new (string filename, string source, string expected)[]
         {
-            ("Program.cs", @"public static void Main(string[] args)
+            ("Program.cs", @"using System;
+
+public class Program
 {
-    var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-}", @$"public static void Main(string[] args)
+    public static void Main(string[] args)
+    {
+        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+    }
+}", @$"using System;
+
+public class Program
 {{
+    public static void Main(string[] args)
+    {{
 #pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-    var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
 #pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
+    }}
 }}"),
-            ("MyClass.cs", @"public void MyClass()
+            ("MyClass.cs", @"using System;
+
+public class Program
 {
-    var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-}", @$"public void MyClass()
+    public static void Main(string[] args)
+    {
+        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+    }
+}", @$"using System;
+
+public class Program
 {{
+    public static void Main(string[] args)
+    {{
 #pragma warning disable {_mahcRule.DiagnosticDescriptor.Id}
-    var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
+        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
 #pragma warning restore {_mahcRule.DiagnosticDescriptor.Id}
+    }}
 }}"),
         };
 

@@ -12,8 +12,8 @@ namespace MindboxAnalyzers.Rules
 			: base(
 				ruleId: "Mindbox1010",
 				title: "TimeZoneHistory should be used for converting time and date",
-				messageFormat: "You cannot use ToLocalTime and ToUniversalTime, instead use TimeZoneHistory",
-				description: "You cannot use ToLocalTime and ToUniversalTime, instead use TimeZoneHistory")
+				messageFormat: "You cannot use ToLocalTime and ToUniversalTime, use TimeZoneHistory instead",
+				description: "You cannot use ToLocalTime and ToUniversalTime, use TimeZoneHistory instead")
 		{
 		}
 
