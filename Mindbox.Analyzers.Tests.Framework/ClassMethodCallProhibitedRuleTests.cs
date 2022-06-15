@@ -90,7 +90,7 @@ public class Program
     }
 
     [TestMethod]
-    public void MAHC_TwoSeparatedSingleLineCalls_ProducesTwoProblems()
+    public void MAHC_TwoSingleLineCalls_ProducesTwoProblems()
     {
         const string givenSource = @"using System;
 
@@ -118,36 +118,6 @@ public class Program
         Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[1].Id);
         Assert.AreEqual(8, problems[1].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
         Assert.AreEqual(8, problems[1].Location.GetLineSpan().EndLinePosition.Line);
-    }
-
-    [TestMethod]
-    public void MAHC_TwoConsecutiveSingleLineCalls_ProducesTwoProblems()
-    {
-        const string givenSource = @"using System;
-
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        var service1 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-        var service2 = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-    }
-}";
-
-        const string filename = "Program.cs";
-
-        var semanticModel = GetSemanticModelFromSourceCode(filename, givenSource);
-        _mahcRule.AnalyzeModel(semanticModel, out var problemCollection);
-        var problems = problemCollection.ToArray();
-
-        Assert.AreEqual(2, problems.Length);
-
-        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[0].Id);
-        Assert.AreEqual(6, problems[0].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
-        Assert.AreEqual(6, problems[0].Location.GetLineSpan().EndLinePosition.Line);
-        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[1].Id);
-        Assert.AreEqual(7, problems[1].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
-        Assert.AreEqual(7, problems[1].Location.GetLineSpan().EndLinePosition.Line);
     }
 
     [TestMethod]
@@ -179,7 +149,7 @@ public class Program
     }
 
     [TestMethod]
-    public void MAHC_TwoSeparatedMultiLineCalls_ProducesTwoProblems()
+    public void MAHC_TwoMultiLineCalls_ProducesTwoProblems()
     {
         const string givenSource = @"using System;
 
@@ -211,40 +181,6 @@ public class Program
         Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[1].Id);
         Assert.AreEqual(10, problems[1].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
         Assert.AreEqual(12, problems[1].Location.GetLineSpan().EndLinePosition.Line);
-    }
-
-    [TestMethod]
-    public void MAHC_TwoConsecutiveMultiLineCalls_ProducesTwoProblems()
-    {
-        const string givenSource = @"using System;
-
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        var service1 = Itc.Commons.Model.ModelApplicationHostController
-            .Instance
-            .Get<Itc.Commons.Model.ITenantValidator>();
-        var service2 = Itc.Commons.Model.ModelApplicationHostController
-            .Instance
-            .Get<Itc.Commons.Model.ITenantValidator>();
-    }
-}";
-
-        const string filename = "Program.cs";
-
-        var semanticModel = GetSemanticModelFromSourceCode(filename, givenSource);
-        _mahcRule.AnalyzeModel(semanticModel, out var problemCollection);
-        var problems = problemCollection.ToArray();
-
-        Assert.AreEqual(2, problems.Length);
-
-        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[0].Id);
-        Assert.AreEqual(6, problems[0].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
-        Assert.AreEqual(8, problems[0].Location.GetLineSpan().EndLinePosition.Line);
-        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problems[1].Id);
-        Assert.AreEqual(9, problems[1].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
-        Assert.AreEqual(11, problems[1].Location.GetLineSpan().EndLinePosition.Line);
     }
 
     [TestMethod]
