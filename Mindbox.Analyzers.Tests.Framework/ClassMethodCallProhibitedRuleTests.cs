@@ -44,10 +44,10 @@ public class ClassMethodCallProhibitedRuleTests
         return compilation.GetSemanticModel(syntaxTree);
     }
 
-    #region MAHC Single file tests
+    #region MAHC Single file
 
     [TestMethod]
-    public void MAHC_NoCalls_DoesntChangeSourceCode()
+    public void MAHC_NoCalls_ProducesNoProblems()
     {
         const string givenSource = @"using System;
 
@@ -65,7 +65,7 @@ public class Program
     }
 
     [TestMethod]
-    public void MAHC_OneSingleLineCall_WrapsInPragma()
+    public void MAHC_OneSingleLineCall_ProducesOneProblem()
     {
         const string givenSource = @"using System;
 
@@ -90,7 +90,7 @@ public class Program
     }
 
     [TestMethod]
-    public void MAHC_TwoSeparatedSingleLineCalls_WrapsInTwoPragmas()
+    public void MAHC_TwoSeparatedSingleLineCalls_ProducesTwoProblems()
     {
         const string givenSource = @"using System;
 
@@ -121,7 +121,7 @@ public class Program
     }
 
     [TestMethod]
-    public void MAHC_TwoConsecutiveSingleLineCalls_WrapsInOnePragma()
+    public void MAHC_TwoConsecutiveSingleLineCalls_ProducesTwoProblems()
     {
         const string givenSource = @"using System;
 
@@ -151,7 +151,7 @@ public class Program
     }
 
     [TestMethod]
-    public void MAHC_OneMultiLineCall_WrapsEntireCallInPragma()
+    public void MAHC_OneMultiLineCall_ProducesOneProblem()
     {
         const string givenSource = @"using System;
 
@@ -179,7 +179,7 @@ public class Program
     }
 
     [TestMethod]
-    public void MAHC_TwoSeparatedMultiLineCalls_WrapsEntireCallsInTwoPragmas()
+    public void MAHC_TwoSeparatedMultiLineCalls_ProducesTwoProblems()
     {
         const string givenSource = @"using System;
 
@@ -214,7 +214,7 @@ public class Program
     }
 
     [TestMethod]
-    public void MAHC_TwoConsecutiveMultiLineCalls_WrapsEntireCallsInOnePragma()
+    public void MAHC_TwoConsecutiveMultiLineCalls_ProducesTwoProblems()
     {
         const string givenSource = @"using System;
 
@@ -247,169 +247,66 @@ public class Program
         Assert.AreEqual(11, problems[1].Location.GetLineSpan().EndLinePosition.Line);
     }
 
-    #endregion
-
-    #region MAHC Multiple file tests
-
-    private struct File
+    [TestMethod]
+    public void MAHC_InstanceInAVariable_ProducesOneProblem()
     {
-        public string Filename;
-        public string Source;
+        const string givenSource = @"using System;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        var mahc = Itc.Commons.Model.ModelApplicationHostController.Instance;
+        var service = mahc.Get<Itc.Commons.Model.ITenantValidator>(); // <------ Problematic line: MAHC.Get
+    }
+}";
+
+        const string filename = "Program.cs";
+
+        var semanticModel = GetSemanticModelFromSourceCode(filename, givenSource);
+        _mahcRule.AnalyzeModel(semanticModel, out var problemCollection);
+        var problems = problemCollection.ToArray();
+
+        Assert.AreEqual(1, problems.Length);
+        var problem = problems.Single();
+
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problem.Id);
+        Assert.AreEqual(7, problem.Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(7, problem.Location.GetLineSpan().EndLinePosition.Line);
     }
 
     [TestMethod]
-    public void MAHC_MultipleFile_NoCalls_DoesntChangeSourceCode()
+    public void MAHC_PassedToMethod_ProducesOneProblem()
     {
-        var files = new File[]
-        {
-            new()
-            {
-                Filename = "Program.cs",
-                Source = @"using System;
+        const string givenSource = @"using System;
+using Itc.Commons.Model;
 
 public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine(""No MAHC calls!"");
+        var mahc = Itc.Commons.Model.ModelApplicationHostController.Instance;
+        var service = MyGetMethod<ITenantValidator>(mahc);
     }
-}"
-            },
-            new()
-            {
-                Filename = "MyClass.cs",
-                Source = @"using System;
 
-public class Program
-{
-    public static void Main(string[] args)
+    private static T MyGetMethod<T>(ModelApplicationHostController mahc) where T : class
     {
-        Console.WriteLine(""No MAHC calls from another method!"");
+        return mahc.Get<T>(); // <--------- Problematic line: MAHC.Get
     }
-}"
-            }
-        };
+}";
 
-        var allProblems = new List<Diagnostic>();
+        const string filename = "Program.cs";
 
-        foreach (var file in files)
-        {
-            var semanticModel = GetSemanticModelFromSourceCode(file.Filename, file.Source);
-            _mahcRule.AnalyzeModel(semanticModel, out var problems);
+        var semanticModel = GetSemanticModelFromSourceCode(filename, givenSource);
+        _mahcRule.AnalyzeModel(semanticModel, out var problemCollection);
+        var problems = problemCollection.ToArray();
 
-            allProblems.AddRange(problems);
-        }
+        Assert.AreEqual(1, problems.Length);
+        var problem = problems.Single();
 
-        Assert.AreEqual(0, allProblems.Count);
-    }
-
-    [TestMethod]
-    public void MAHC_MultipleFile_OneOutOfTwoCalls()
-    {
-        var files = new File[]
-        {
-            new()
-            {
-                Filename = "Program.cs",
-                Source = @"using System;
-
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-    }
-}"
-            },
-            new()
-            {
-                Filename = "MyClass.cs",
-                Source = @"using System;
-
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        Console.WriteLine(""No MAHC calls from another method!"");
-    }
-}"
-            }
-        };
-
-        var allProblems = new List<Diagnostic>();
-
-        foreach (var file in files)
-        {
-            var semanticModel = GetSemanticModelFromSourceCode(file.Filename, file.Source);
-            _mahcRule.AnalyzeModel(semanticModel, out var problems);
-
-            allProblems.AddRange(problems);
-        }
-
-        Assert.AreEqual(1, allProblems.Count);
-        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, allProblems[0].Id);
-        Assert.AreEqual(files[0].Filename, allProblems[0].Location.SourceTree?.FilePath);
-        Assert.AreEqual(6,
-            allProblems[0].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
-        Assert.AreEqual(6, allProblems[0].Location.GetLineSpan().EndLinePosition.Line);
-    }
-
-    [TestMethod]
-    public void MAHC_MultipleFile_AllFilesCall()
-    {
-        var files = new File[]
-        {
-            new()
-            {
-                Filename = "Program.cs",
-                Source = @"using System;
-
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-    }
-}"
-            },
-            new()
-            {
-                Filename = "MyClass.cs",
-                Source = @"using System;
-
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        var service = Itc.Commons.Model.ModelApplicationHostController.Instance.Get<Itc.Commons.Model.ITenantValidator>();
-    }
-}"
-            }
-        };
-
-        var allProblems = new List<Diagnostic>();
-
-        foreach (var file in files)
-        {
-            var semanticModel = GetSemanticModelFromSourceCode(file.Filename, file.Source);
-            _mahcRule.AnalyzeModel(semanticModel, out var problems);
-
-            allProblems.AddRange(problems);
-        }
-
-        Assert.AreEqual(2, allProblems.Count);
-
-        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, allProblems[0].Id);
-        Assert.AreEqual(files[0].Filename, allProblems[0].Location.SourceTree?.FilePath);
-        Assert.AreEqual(6,
-            allProblems[0].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
-        Assert.AreEqual(6, allProblems[0].Location.GetLineSpan().EndLinePosition.Line);
-
-        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, allProblems[1].Id);
-        Assert.AreEqual(files[1].Filename, allProblems[1].Location.SourceTree?.FilePath);
-        Assert.AreEqual(6,
-            allProblems[1].Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
-        Assert.AreEqual(6, allProblems[1].Location.GetLineSpan().EndLinePosition.Line);
+        Assert.AreEqual(_mahcRule.DiagnosticDescriptor.Id, problem.Id);
+        Assert.AreEqual(13, problem.Location.GetLineSpan().StartLinePosition.Line); // LinePosition.Line is 0-based
+        Assert.AreEqual(13, problem.Location.GetLineSpan().EndLinePosition.Line);
     }
 
     #endregion
