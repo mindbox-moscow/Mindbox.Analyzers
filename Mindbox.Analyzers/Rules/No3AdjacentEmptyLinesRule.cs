@@ -11,9 +11,9 @@ namespace MindboxAnalyzers.Rules
 		public No3AdjacentEmptyLinesRule()
 			: base(
 				ruleId: "Mindbox1001",
-				title: "Никогда не должно быть трёх пустых строк подряд",
-				messageFormat: "Три пустых строки подряд",
-				description: "Проверяет, что нигде нет трёх пустых строк подряд")
+				title: "There should never be three or more consecutive empty lines",
+				messageFormat: "Three or more consecutive empty lines. Please remove the extra.",
+				description: "Makes sure that there's no three or more consecutive empty lines")
 		{
 		}
 

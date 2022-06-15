@@ -11,9 +11,9 @@ namespace MindboxAnalyzers.Rules
 		public NameOfInArgumentExceptionsRequiredRule()
 			: base(
 				ruleId: "Mindbox2001",
-				title: "Вместо указания имени атрибута строкой должен использоваться оператор nameof",
-				messageFormat: "Название аргумента строкой вместо использования nameof",
-				description: "Вместо указания имени атрибута строкой должен использоваться оператор nameof")
+				title: "Instead of specifying the argument name as a string nameof operator should be used",
+				messageFormat: "Use nameof instead of parameter name as string",
+				description: "Instead of specifying the argument name as a string nameof operator should be used")
 		{
 		}
 

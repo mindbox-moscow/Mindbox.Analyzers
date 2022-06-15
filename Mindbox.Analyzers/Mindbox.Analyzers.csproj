@@ -2,7 +2,7 @@
   <PropertyGroup>
 	<TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Mindbox.Analyzers.V3</PackageId>
-    <VersionPrefix>4.0.10</VersionPrefix>
+    <VersionPrefix>5.0.0</VersionPrefix>
     <Authors>Mindbox</Authors>
     <Description>Code style analyzers developed by Mindbox (for internal use)</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

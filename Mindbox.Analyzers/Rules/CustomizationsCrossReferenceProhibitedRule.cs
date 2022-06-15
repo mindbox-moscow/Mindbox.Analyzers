@@ -10,20 +10,25 @@ namespace MindboxAnalyzers.Rules
 	public class CustomizationsCrossReferenceProhibitedRule : AnalyzerRule, ITreeAnalyzerRule
 	{
 		private const string ruleId = "Mindbox1014";
+		
 		private const string title =
-			"В проекте Customizations запрещены кросс-ссылки между разными проектами.";
+			"In Customizations project cross-links between different projects are forbidden.";
+		
 		private const string invalidNamespaceLinkMessage =
-			"Код из namespace'а одного проекта ссылается на код в namespace'е другого";
+			"Code from one project's namespace references code from another project's namespace";
+		
 		private const string description =
-			"Код из папки одного проекта в Customizations не должен ссылаться на код из папки другого. "+
-			"Код в проекте должен содержать декларации только корректных namespace'ов, соответствующих проекту.";
+			"Code from one Customizations project shouldn't reference code from another Customizations project. " +
+			"Code in the project should only contain declarations from correct namespaces that correspond to the project";
+
 		private const string invalidFilePathMessage =
-			"Файл класса расположен не в папке Dev\\Customizations. " +
-			"Возможно это из за того, что правило включено не в проекте Customizations";
+			"Class file does not contain to Dev\\Customizations folder. " +
+			"The probable cause is the rule is enabled not in the Customizations project";
+
 		private const string invalidNamespaceMessage =
-			"Задекларирован namespace с некорректным именем. " +
-			"Для проектов в Customizations корректный namespace должен быть вида itc.{имя проекта}. " +
-			"При этом все файлы проекта должны располагаться в папках Customizations\\...\\{имя проекта}\\";
+			"Defined namespace with invalid name. " +
+			"For Customizations projects the correct namespace is itc.{ProjectName}. " +
+			"Moreover, all project files should be located in Dev\\Customizations\\...\\{ProjectName}\\";
 
 		private DiagnosticDescriptor InvalidClassFolderDescriptor { get; }
 		private DiagnosticDescriptor InvalidNamespaceDescriptor { get; }

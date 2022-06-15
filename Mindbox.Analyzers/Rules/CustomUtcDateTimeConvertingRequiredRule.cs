@@ -11,9 +11,9 @@ namespace MindboxAnalyzers.Rules
 		public CustomUtcDateTimeConvertingRequiredRule()
 			: base(
 				ruleId: "Mindbox1010",
-				title: "Для конвертации даты и времени должна использоваться TimeZoneHistory",
-				messageFormat: "Использование ToLocalTime и ToUniversalTime запрещено, используйте TimeZoneHistory",
-				description: "Использование ToLocalTime и ToUniversalTime запрещено, используйте TimeZoneHistory")
+				title: "TimeZoneHistory should be used for converting time and date",
+				messageFormat: "You cannot use ToLocalTime and ToUniversalTime, use TimeZoneHistory instead",
+				description: "You cannot use ToLocalTime and ToUniversalTime, use TimeZoneHistory instead")
 		{
 		}
 
