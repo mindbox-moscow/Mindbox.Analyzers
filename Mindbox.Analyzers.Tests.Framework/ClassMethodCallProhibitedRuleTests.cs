@@ -339,7 +339,7 @@ public class TestNamedObjectComponent : NamedObjectComponent<TestNamedObject>
 ";
 
     [TestMethod]
-    public void NOMC_NoCalls_DoesntChangeSourceCode()
+    public void NOMC_NoCalls_ProducesNoProblems()
     {
         const string givenSource = $@"{NomcCodeUsings}
 
@@ -362,7 +362,7 @@ public class TstModelPart : Module
     }
 
     [TestMethod]
-    public void NOMC_OneSingleLineCall_WrapsInPragma()
+    public void NOMC_OneSingleLineCall_ProducesOneProblem()
     {
         const string givenSource = $@"{NomcCodeUsings}
 
