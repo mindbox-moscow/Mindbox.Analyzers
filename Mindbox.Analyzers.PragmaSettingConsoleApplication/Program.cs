@@ -73,7 +73,6 @@ namespace Mindbox.Analyzers.ConsoleApplication
             }
 
             Console.WriteLine($"FINISHED {DateTime.Now}. Updated {changedFiles.Count} files.");
-            Console.ReadKey();
         }
 
         
