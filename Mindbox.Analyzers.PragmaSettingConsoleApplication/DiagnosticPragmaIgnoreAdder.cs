@@ -17,12 +17,21 @@ public class DiagnosticPragmaIgnoreAdder
     public Dictionary<string, string> AddPragmasToCode(IEnumerable<Diagnostic>? diagnostics)
     {
         if (diagnostics is null) return new Dictionary<string, string>();
+
+        var distinctDiagnostics = diagnostics
+            .DistinctBy(x => new
+            {
+                LineNo = x.Location.GetLineSpan().StartLinePosition.Line,
+                Column = x.Location.GetLineSpan().StartLinePosition.Character,
+                DiagnosticId = x.Id,
+                x.Location.SourceTree?.FilePath
+            });
         
         var changedFiles = new Dictionary<string, string>();
         var insertionShifts = new Dictionary<string, int>(); // we insert new lines, but diagnostics lines stay as if there were no new lines
 
         // Add ignoring/restoring pragmas to source file. Does not actually modify files, only returns paths and new file contents.
-        foreach (var diagnostic in diagnostics)
+        foreach (var diagnostic in distinctDiagnostics)
         {
             
             var descriptor = diagnostic.Descriptor.Id;
