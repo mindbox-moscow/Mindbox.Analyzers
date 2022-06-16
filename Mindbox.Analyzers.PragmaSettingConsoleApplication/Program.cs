@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Text;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -68,7 +69,7 @@ namespace Mindbox.Analyzers.ConsoleApplication
             var changedFiles = new DiagnosticPragmaIgnoreAdder(DiagnosticIDsToSuppress).AddPragmasToCode(diagnostics);
             foreach (var (filename, newFileContents) in changedFiles)
             {
-                File.WriteAllText(filename, newFileContents);
+                File.WriteAllText(filename, newFileContents, Encoding.UTF8);
             }
 
             Console.WriteLine($"FINISHED {DateTime.Now}. Updated {changedFiles.Count} files.");
