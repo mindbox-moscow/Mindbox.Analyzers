@@ -93,6 +93,40 @@ namespace MindboxAnalyzers.Tests
 
 			VerifyCSharpDiagnostic(test, Array.Empty<DiagnosticResult>());
 		}
+
+		[TestMethod]
+		public void NoIntegrationTestsWithoutOwnerRule()
+		{
+			var test = 
+				"class IntegrationTestBase{}\n\n" +
+				"[IntegrationTest]\n" +
+			    "class IntegrationTest1:IntegrationTestBase\n" +
+			    "{\n" +
+			    "	[TestMethod]\n" +
+			    "	[Owner(\"framework\")]\n" +
+			    "	public void TestMethod(){}\n\n" +
+				"	[TestMethod]\n" +
+				"	public void TestMethod2(){}\n" +
+			    "}\n\n" +
+			    "class NonIntegrationTest\n"+
+				"{\n" +
+				"	public void NonIntegrationTestMethod(){}\n" +
+				"}";
+			
+			var rule = new NoIntegrationTestsWithoutOwnerRule();
+			var expected = new DiagnosticResult
+			{
+				Id = rule.DiagnosticDescriptor.Id,
+				Message = rule.DiagnosticDescriptor.MessageFormat.ToString(),
+				Severity = DiagnosticSeverity.Warning,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 9, 1)
+				}
+			};
+			
+			VerifyCSharpDiagnostic(test, expected);
+		}
 		
 		/*
 		[TestMethod]
