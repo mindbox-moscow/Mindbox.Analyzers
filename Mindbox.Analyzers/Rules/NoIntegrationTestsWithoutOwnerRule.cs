@@ -8,6 +8,10 @@ namespace MindboxAnalyzers.Rules;
 
 public class NoIntegrationTestsWithoutOwnerRule : AnalyzerRule, ITreeAnalyzerRule
 {
+    public const string IntegrationTestAttributeName = "IntegrationTest";
+    public const string TestMethodAttributeName = "TestMethod";
+    public const string OwnerAttributeName = "Owner";
+    
     public NoIntegrationTestsWithoutOwnerRule()
             : base(
                 ruleId: "Mindbox1016",
@@ -29,7 +33,7 @@ public class NoIntegrationTestsWithoutOwnerRule : AnalyzerRule, ITreeAnalyzerRul
                     return (node as ClassDeclarationSyntax)
                         .AttributeLists
                         .Any(al => al.Attributes.Any(
-                            a => a.Name.ToString() == "IntegrationTest"));
+                            a => a.Name.ToString() == IntegrationTestAttributeName));
                 })
                 .Select(node =>
                     node.DescendantNodes()
@@ -42,7 +46,7 @@ public class NoIntegrationTestsWithoutOwnerRule : AnalyzerRule, ITreeAnalyzerRul
                                 {
                                     return
                                         al.Attributes.Any(
-                                            a => a.Name.ToString() == "TestMethod");
+                                            a => a.Name.ToString() == TestMethodAttributeName);
                                 });
                             var containsOwnerAttr = (node as MethodDeclarationSyntax)
                                 .AttributeLists
@@ -50,7 +54,7 @@ public class NoIntegrationTestsWithoutOwnerRule : AnalyzerRule, ITreeAnalyzerRul
                                 {
                                     return
                                         al.Attributes.Any(
-                                            a => a.Name.ToString() == "Owner");
+                                            a => a.Name.ToString() == OwnerAttributeName);
                                 });
                             return containsTestMethodAttr && !containsOwnerAttr;
                         }))
