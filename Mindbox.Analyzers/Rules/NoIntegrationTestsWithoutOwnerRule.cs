@@ -24,9 +24,10 @@ public class NoIntegrationTestsWithoutOwnerRule : AnalyzerRule, ITreeAnalyzerRul
 
         public void AnalyzeTree(SyntaxTree tree, out ICollection<Diagnostic> foundProblems)
         {
-            foundProblems = tree
+            var methods = tree
                 .GetRoot()
                 .DescendantNodes()
+                .AsParallel()
                 .Where(node => node.IsKind(SyntaxKind.ClassDeclaration))
                 .Where(node =>
                 {
@@ -37,6 +38,7 @@ public class NoIntegrationTestsWithoutOwnerRule : AnalyzerRule, ITreeAnalyzerRul
                 })
                 .Select(node =>
                     node.DescendantNodes()
+                        .AsParallel()
                         .Where(node => node.IsKind(SyntaxKind.MethodDeclaration))
                         .Where(node =>
                         {
@@ -57,9 +59,15 @@ public class NoIntegrationTestsWithoutOwnerRule : AnalyzerRule, ITreeAnalyzerRul
                                             a => a.Name.ToString() == OwnerAttributeName);
                                 });
                             return containsTestMethodAttr && !containsOwnerAttr;
-                        }))
-                .Aggregate((acc, item) => acc.Concat(item))
-                .Select(node => CreateDiagnosticForLocation(Location.Create(tree, node.FullSpan)))
-                .ToList();
+                        }));
+
+            foundProblems= new List<Diagnostic>();
+            foreach (var subList in methods)
+            {
+                (foundProblems as List<Diagnostic>).AddRange(
+                    subList
+                        .Select(node => CreateDiagnosticForLocation(Location.Create(tree, node.FullSpan)))
+                        .ToList());
+            }
         }
 }
