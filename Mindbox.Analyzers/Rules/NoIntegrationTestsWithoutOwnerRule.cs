@@ -14,8 +14,8 @@ public class NoIntegrationTestsWithoutOwnerRule : AnalyzerRule, ITreeAnalyzerRul
     public NoIntegrationTestsWithoutOwnerRule()
             : base(
                 ruleId: "Mindbox1016",
-                title: "Integration test method must have Owner attribute.",
-                messageFormat: "Method does not have Owner attribute",
+                title: "Integration test method must have \"Owner\" attribute.",
+                messageFormat: "Test method does not have \"Owner\" attribute.",
                 description: "Checks if a method with attribute \"TestMethod\" has an \"Owner\" attribute.",
                 severity: DiagnosticSeverity.Hidden)
         {
