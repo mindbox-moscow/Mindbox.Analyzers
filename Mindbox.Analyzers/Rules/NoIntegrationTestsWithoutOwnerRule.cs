@@ -8,7 +8,6 @@ namespace MindboxAnalyzers.Rules;
 
 public class NoIntegrationTestsWithoutOwnerRule : AnalyzerRule, ITreeAnalyzerRule
 {
-    public const string IntegrationTestAttributeName = "IntegrationTest";
     public const string TestMethodAttributeName = "TestMethod";
     public const string OwnerAttributeName = "Owner";
     
@@ -17,57 +16,41 @@ public class NoIntegrationTestsWithoutOwnerRule : AnalyzerRule, ITreeAnalyzerRul
                 ruleId: "Mindbox1016",
                 title: "Integration test method must have Owner attribute.",
                 messageFormat: "Method does not have Owner attribute",
-                description: "Checks if a method with attribute \"TestMethod\" " +
-                             "in a class with \"IntegrationTest\" attribute, has an \"Owner\" attribute.")
+                description: "Checks if a method with attribute \"TestMethod\" has an \"Owner\" attribute.",
+                severity: DiagnosticSeverity.Hidden)
         {
         }
 
         public void AnalyzeTree(SyntaxTree tree, out ICollection<Diagnostic> foundProblems)
         {
-            var methods = tree
+            foundProblems = tree
                 .GetRoot()
                 .DescendantNodes()
                 .AsParallel()
-                .Where(node => node.IsKind(SyntaxKind.ClassDeclaration))
+                .Where(node => node.IsKind(SyntaxKind.MethodDeclaration))
                 .Where(node =>
                 {
-                    return (node as ClassDeclarationSyntax)
+                    var containsTestMethodAttr = (node as MethodDeclarationSyntax)?
                         .AttributeLists
-                        .Any(al => al.Attributes.Any(
-                            a => a.Name.ToString() == IntegrationTestAttributeName));
-                })
-                .Select(node =>
-                    node.DescendantNodes()
-                        .AsParallel()
-                        .Where(node => node.IsKind(SyntaxKind.MethodDeclaration))
-                        .Where(node =>
+                        .Any(al =>
                         {
-                            var containsTestMethodAttr = (node as MethodDeclarationSyntax)
-                                .AttributeLists
-                                .Any(al =>
-                                {
-                                    return
-                                        al.Attributes.Any(
-                                            a => a.Name.ToString() == TestMethodAttributeName);
-                                });
-                            var containsOwnerAttr = (node as MethodDeclarationSyntax)
-                                .AttributeLists
-                                .Any(al =>
-                                {
-                                    return
-                                        al.Attributes.Any(
-                                            a => a.Name.ToString() == OwnerAttributeName);
-                                });
-                            return containsTestMethodAttr && !containsOwnerAttr;
-                        }));
-
-            foundProblems= new List<Diagnostic>();
-            foreach (var subList in methods)
-            {
-                (foundProblems as List<Diagnostic>).AddRange(
-                    subList
-                        .Select(node => CreateDiagnosticForLocation(Location.Create(tree, node.FullSpan)))
-                        .ToList());
-            }
+                            return
+                                al.Attributes.Any(
+                                    a => a.Name.ToString().StartsWith(TestMethodAttributeName));
+                        })
+                        ?? false;
+                    var containsOwnerAttr = (node as MethodDeclarationSyntax)?
+                        .AttributeLists
+                        .Any(al =>
+                        {
+                            return
+                                al.Attributes.Any(
+                                    a => a.Name.ToString().StartsWith(OwnerAttributeName));
+                        })
+                        ?? false;
+                    return containsTestMethodAttr && !containsOwnerAttr;
+                })
+                .Select(node => CreateDiagnosticForLocation(Location.Create(tree, node.FullSpan)))
+                .ToList();
         }
 }
