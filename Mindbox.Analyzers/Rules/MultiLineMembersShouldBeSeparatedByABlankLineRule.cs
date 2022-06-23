@@ -11,11 +11,11 @@ namespace MindboxAnalyzers.Rules
 		public MultiLineMembersShouldBeSeparatedByABlankLineRule()
 			: base(
 				ruleId: "Mindbox1004",
-				title: "Многострочные методы, многострочные свойства, вложенные классы, структуры, " +
-						"перечисления и интерфейсы должны отделяться как минимум одной пустой строкой от любых членов.",
-				messageFormat: "Многострочный член класса должен отделяться пустой строкой",
-				description: "Проверяет, что многострочные методы, многострочные свойства, вложенные классы, структуры, " +
-							"перечисления и интерфейсы отделяются как минимум одной пустой строкой от любых членов.")
+				title: "Multiline methods, properties, inner classes, structs, enums and interfaces " +
+						"should be separated from other members with at least one empty line",
+				messageFormat: "Multiline class member should be separated with at least one empty line",
+				description: "Makes sure that multiline methods, properties, inner classes, structs, enums and " +
+							"interfaces are separated from other members with at least one empty line")
 		{
 		}
 

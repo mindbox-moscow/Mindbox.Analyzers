@@ -9,9 +9,9 @@ namespace MindboxAnalyzers.Rules
 		public OnlyTabsShouldBeUsedForIndentationRule()
 			: base(
 				ruleId: "Mindbox1002",
-				title: "Отступы должны формироваться только с помощью табуляции",
-				messageFormat: "Для отступа используются пробелы",
-				description: "Проверяет, что отступы формируются только с помощью табуляции")
+				title: "Code should be indented with tabs only",
+				messageFormat: "Indentation with spaces is prohibited",
+				description: "Makes sure that code is indented with tabs only")
 		{
 		}
 
