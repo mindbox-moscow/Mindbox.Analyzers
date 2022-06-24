@@ -93,6 +93,39 @@ namespace MindboxAnalyzers.Tests
 
 			VerifyCSharpDiagnostic(test, Array.Empty<DiagnosticResult>());
 		}
+
+		[TestMethod]
+		public void NoTestsWithoutOwnerRule()
+		{
+			var test = 
+				@"class TestBase{}
+
+			    class Test1:TestBase
+			    {
+			    	[TestMethodAttribute]
+			    	[OwnerAttribute(111)]
+			    	public void TestMethod(){}
+
+					[TestMethodAttribute]
+					public void TestMethod2(){}
+
+					public void NonTestMethod(){}
+			    }";
+			
+			var rule = new NoTestWithoutOwnerRule();
+			var expected = new DiagnosticResult
+			{
+				Id = rule.DiagnosticDescriptor.Id,
+				Message = rule.DiagnosticDescriptor.MessageFormat.ToString(),
+				Severity = DiagnosticSeverity.Hidden,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 8, 1)
+				}
+			};
+			
+			VerifyCSharpDiagnostic(test, expected);
+		}
 		
 		/*
 		[TestMethod]

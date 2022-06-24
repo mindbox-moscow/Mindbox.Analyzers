@@ -30,7 +30,8 @@ namespace MindboxAnalyzers
 				new NameOfInArgumentExceptionsRequiredRule(),
 				new NameOfInColumnAttributesRequiredRule(),
 				new CustomizationsCrossReferenceProhibitedRule(),
-				new CacheItemProviderKeyMustBeStaticRule()
+				new CacheItemProviderKeyMustBeStaticRule(),
+				new NoTestWithoutOwnerRule()
 			};
 
 			supportedDiagnostics =
