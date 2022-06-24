@@ -6,15 +6,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace MindboxAnalyzers.Rules;
 
-public class NoIntegrationTestsWithoutOwnerRule : AnalyzerRule, ITreeAnalyzerRule
+public class NoTestWithoutOwnerRule : AnalyzerRule, ITreeAnalyzerRule
 {
     public const string TestMethodAttributeName = "TestMethod";
     public const string OwnerAttributeName = "Owner";
     
-    public NoIntegrationTestsWithoutOwnerRule()
+    public NoTestWithoutOwnerRule()
             : base(
                 ruleId: "Mindbox1016",
-                title: "Integration test method must have \"Owner\" attribute.",
+                title: "Test method must have \"Owner\" attribute.",
                 messageFormat: "Test method does not have \"Owner\" attribute.",
                 description: "Checks if a method with attribute \"TestMethod\" has an \"Owner\" attribute.",
                 severity: DiagnosticSeverity.Hidden)

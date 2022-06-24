@@ -95,12 +95,12 @@ namespace MindboxAnalyzers.Tests
 		}
 
 		[TestMethod]
-		public void NoIntegrationTestsWithoutOwnerRule()
+		public void NoTestsWithoutOwnerRule()
 		{
 			var test = 
-				@"class IntegrationTestBase{}
+				@"class TestBase{}
 
-			    class IntegrationTest1:IntegrationTestBase
+			    class Test1:TestBase
 			    {
 			    	[TestMethodAttribute]
 			    	[OwnerAttribute(111)]
@@ -108,14 +108,11 @@ namespace MindboxAnalyzers.Tests
 
 					[TestMethodAttribute]
 					public void TestMethod2(){}
-			    }
 
-			    class NonIntegrationTest
-				{
-					public void NonIntegrationTestMethod(){}
-				}";
+					public void NonTestMethod(){}
+			    }";
 			
-			var rule = new NoIntegrationTestsWithoutOwnerRule();
+			var rule = new NoTestWithoutOwnerRule();
 			var expected = new DiagnosticResult
 			{
 				Id = rule.DiagnosticDescriptor.Id,

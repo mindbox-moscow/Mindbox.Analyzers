@@ -31,7 +31,7 @@ namespace MindboxAnalyzers
 				new NameOfInColumnAttributesRequiredRule(),
 				new CustomizationsCrossReferenceProhibitedRule(),
 				new CacheItemProviderKeyMustBeStaticRule(),
-				new NoIntegrationTestsWithoutOwnerRule()
+				new NoTestWithoutOwnerRule()
 			};
 
 			supportedDiagnostics =
