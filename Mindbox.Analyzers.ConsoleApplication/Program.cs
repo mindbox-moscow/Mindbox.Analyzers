@@ -1,82 +1,86 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
 using MindboxAnalyzers;
 
-namespace Mindbox.Analyzers.ConsoleApplication
+namespace Mindbox.Analyzers.ConsoleApplication;
+
+internal class Program
 {
-    internal class Program
-    {
-        private const string SolutionPath = @"/Users/tsyrulnikov/RiderProjects/Solution1/Solution1.sln";
-        
-        public static void Main(string[] args)
-        {
-            Console.WriteLine($"Before solution opened: {DateTime.Now}");
+	private const string SolutionPath = @"/Users/tsyrulnikov/RiderProjects/Solution1/Solution1.sln";
 
-            MSBuildLocator.RegisterDefaults();
+	public static void Main(string[] _)
+	{
+		Console.WriteLine($"Before solution opened: {DateTime.Now}");
 
-            var workspace = MSBuildWorkspace.Create();
+		MSBuildLocator.RegisterDefaults();
 
-            workspace.LoadMetadataForReferencedProjects = true;
+		var workspace = MSBuildWorkspace.Create();
 
-            workspace.WorkspaceFailed += (sender, eventArgs) =>
-            {
-                Console.Error.WriteLine($"{eventArgs.Diagnostic.Kind}: {eventArgs.Diagnostic.Message}");
-                Console.Error.WriteLine();
-            };
+		workspace.LoadMetadataForReferencedProjects = true;
 
-            var originalSolution = workspace.OpenSolutionAsync(SolutionPath).Result;
+		workspace.WorkspaceFailed += (sender, eventArgs) =>
+		{
+			Console.Error.WriteLine($"{eventArgs.Diagnostic.Kind}: {eventArgs.Diagnostic.Message}");
+			Console.Error.WriteLine();
+		};
 
-            Console.WriteLine($"Before compilation {DateTime.Now}");
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
+		var originalSolution = workspace.OpenSolutionAsync(SolutionPath).Result;
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
 
-            var diagnostics = GetSortedDiagnosticsFromDocuments(new MindboxAnalyzer(), originalSolution);
+		Console.WriteLine($"Before compilation {DateTime.Now}");
 
-            foreach (var diagnostic in diagnostics)
-            {
-                Console.WriteLine(diagnostic.GetMessage());
-            }
+		var diagnostics = GetSortedDiagnosticsFromDocuments(new MindboxAnalyzer(), originalSolution);
 
-            Console.WriteLine($"FINISHED {DateTime.Now}");
-            Console.ReadKey();
-        }
+		foreach (var diagnostic in diagnostics)
+		{
+			Console.WriteLine(diagnostic.GetMessage());
+		}
 
-        private static List<Diagnostic> GetSortedDiagnosticsFromDocuments(DiagnosticAnalyzer analyzer, Solution solution)
-        {
-            var diagnostics = new List<Diagnostic>();
-            foreach (var project in solution.Projects)
-            {
-                var compilation = project.GetCompilationAsync().Result;
-                if (compilation == null) continue;
-                var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzer));
-                var diags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
-                foreach (var diag in diags)
-                {
-                    if (diag.Location == Location.None || diag.Location.IsInMetadata)
-                    {
-                        diagnostics.Add(diag);
-                    }
-                    else
-                    {
-                        var documents = project.Documents.ToArray();
-                        for (var i = 0; i < documents.Length; i++)
-                        {
-                            var document = documents[i];
-                            var tree = document.GetSyntaxTreeAsync().Result;
-                            if (tree == diag.Location.SourceTree)
-                            {
-                                diagnostics.Add(diag);
-                            }
-                        }
-                    }
-                }
-            }
+		Console.WriteLine($"FINISHED {DateTime.Now}");
+		Console.ReadKey();
+	}
 
-            return diagnostics;
-        }
-    }
+	private static List<Diagnostic> GetSortedDiagnosticsFromDocuments(DiagnosticAnalyzer analyzer, Solution solution)
+	{
+		var diagnostics = new List<Diagnostic>();
+		foreach (var project in solution.Projects)
+		{
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
+			var compilation = project.GetCompilationAsync().Result;
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+			if (compilation == null) continue;
+			var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzer));
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
+			var diags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+			foreach (var diag in diags)
+			{
+				if (diag.Location == Location.None || diag.Location.IsInMetadata)
+				{
+					diagnostics.Add(diag);
+				}
+				else
+				{
+					var documents = project.Documents.ToArray();
+					for (var i = 0; i < documents.Length; i++)
+					{
+						var document = documents[i];
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
+						var tree = document.GetSyntaxTreeAsync().Result;
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+						if (tree == diag.Location.SourceTree)
+						{
+							diagnostics.Add(diag);
+						}
+					}
+				}
+			}
+		}
+
+		return diagnostics;
+	}
 }
