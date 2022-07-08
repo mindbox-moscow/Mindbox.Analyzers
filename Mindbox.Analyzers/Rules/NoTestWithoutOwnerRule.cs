@@ -8,49 +8,49 @@ namespace MindboxAnalyzers.Rules;
 
 public class NoTestWithoutOwnerRule : AnalyzerRule, ITreeAnalyzerRule
 {
-    public const string TestMethodAttributeName = "TestMethod";
-    public const string OwnerAttributeName = "Owner";
-    
-    public NoTestWithoutOwnerRule()
-            : base(
-                ruleId: "Mindbox1016",
-                title: "Test method must have \"Owner\" attribute.",
-                messageFormat: "Test method does not have \"Owner\" attribute.",
-                description: "Checks if a method with attribute \"TestMethod\" has an \"Owner\" attribute.",
-                severity: DiagnosticSeverity.Hidden)
-        {
-        }
+	public const string TestMethodAttributeName = "TestMethod";
+	public const string OwnerAttributeName = "Owner";
 
-        public void AnalyzeTree(SyntaxTree tree, out ICollection<Diagnostic> foundProblems)
-        {
-            foundProblems = tree
-                .GetRoot()
-                .DescendantNodes()
-                .AsParallel()
-                .Where(node => node.IsKind(SyntaxKind.MethodDeclaration))
-                .Where(node =>
-                {
-                    var containsTestMethodAttr = (node as MethodDeclarationSyntax)?
-                        .AttributeLists
-                        .Any(al =>
-                        {
-                            return
-                                al.Attributes.Any(
-                                    a => a.Name.ToString().StartsWith(TestMethodAttributeName));
-                        })
-                        ?? false;
-                    var containsOwnerAttr = (node as MethodDeclarationSyntax)?
-                        .AttributeLists
-                        .Any(al =>
-                        {
-                            return
-                                al.Attributes.Any(
-                                    a => a.Name.ToString().StartsWith(OwnerAttributeName));
-                        })
-                        ?? false;
-                    return containsTestMethodAttr && !containsOwnerAttr;
-                })
-                .Select(node => CreateDiagnosticForLocation(Location.Create(tree, node.FullSpan)))
-                .ToList();
-        }
+	public NoTestWithoutOwnerRule()
+			: base(
+				ruleId: "Mindbox1016",
+				title: "Test method must have \"Owner\" attribute.",
+				messageFormat: "Test method does not have \"Owner\" attribute.",
+				description: "Checks if a method with attribute \"TestMethod\" has an \"Owner\" attribute.",
+				severity: DiagnosticSeverity.Hidden)
+	{
+	}
+
+	public void AnalyzeTree(SyntaxTree tree, out ICollection<Diagnostic> foundProblems)
+	{
+		foundProblems = tree
+			.GetRoot()
+			.DescendantNodes()
+			.AsParallel()
+			.Where(node => node.IsKind(SyntaxKind.MethodDeclaration))
+			.Where(node =>
+			{
+				var containsTestMethodAttr = (node as MethodDeclarationSyntax)?
+					.AttributeLists
+					.Any(al =>
+					{
+						return
+							al.Attributes.Any(
+								a => a.Name.ToString().StartsWith(TestMethodAttributeName));
+					})
+					?? false;
+				var containsOwnerAttr = (node as MethodDeclarationSyntax)?
+					.AttributeLists
+					.Any(al =>
+					{
+						return
+							al.Attributes.Any(
+								a => a.Name.ToString().StartsWith(OwnerAttributeName));
+					})
+					?? false;
+				return containsTestMethodAttr && !containsOwnerAttr;
+			})
+			.Select(node => CreateDiagnosticForLocation(Location.Create(tree, node.FullSpan)))
+			.ToList();
+	}
 }

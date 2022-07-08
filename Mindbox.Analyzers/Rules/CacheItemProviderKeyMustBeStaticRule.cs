@@ -5,46 +5,45 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace MindboxAnalyzers.Rules
+namespace MindboxAnalyzers.Rules;
+
+public class CacheItemProviderKeyMustBeStaticRule : AnalyzerRule, ITreeAnalyzerRule
 {
-	public class CacheItemProviderKeyMustBeStaticRule : AnalyzerRule, ITreeAnalyzerRule
+	public CacheItemProviderKeyMustBeStaticRule()
+		: base(
+			ruleId: "Mindbox1015",
+			title: "Свойства и поля типа *CacheItemProviderKey должны быть статическими",
+			messageFormat: "Свойство/поле типа *CacheItemProviderKey должно являться статическим",
+			description: "Проверяет, чтобы поля и свойства типа *CacheItemProviderKey должны быть статическими во избежание утечки памяти."
+		)
 	{
-		public CacheItemProviderKeyMustBeStaticRule()
-			: base(
-				ruleId: "Mindbox1015",
-				title: "Свойства и поля типа *CacheItemProviderKey должны быть статическими",
-				messageFormat: "Свойство/поле типа *CacheItemProviderKey должно являться статическим",
-				description: "Проверяет, чтобы поля и свойства типа *CacheItemProviderKey должны быть статическими во избежание утечки памяти."
+	}
+
+	public void AnalyzeTree(SyntaxTree tree, out ICollection<Diagnostic> foundProblems)
+	{
+		if (!tree.GetText().ToString().Contains("CacheItemProviderKey"))
+		{
+			foundProblems = Array.Empty<Diagnostic>();
+			return;
+		}
+
+		foundProblems = tree
+			.GetRoot()
+			.DescendantNodes()
+			.Where(node => node.IsKind(SyntaxKind.PropertyDeclaration) || node.IsKind(SyntaxKind.FieldDeclaration))
+			.OfType<MemberDeclarationSyntax>()
+			.Where(member => member.Modifiers.All(modifier => !modifier.IsKind(SyntaxKind.StaticKeyword)))
+			.Select(
+				member => member switch
+				{
+					PropertyDeclarationSyntax property => property.Type,
+					FieldDeclarationSyntax field => field.Declaration.Type,
+					_ => null
+				}
 			)
-		{
-		}
-
-		public void AnalyzeTree(SyntaxTree tree, out ICollection<Diagnostic> foundProblems)
-		{
-			if (!tree.GetText().ToString().Contains("CacheItemProviderKey"))
-			{
-				foundProblems = Array.Empty<Diagnostic>();
-				return;
-			}
-
-			foundProblems = tree
-				.GetRoot()
-				.DescendantNodes()
-				.Where(node => node.IsKind(SyntaxKind.PropertyDeclaration) || node.IsKind(SyntaxKind.FieldDeclaration))
-				.OfType<MemberDeclarationSyntax>()
-				.Where(member => member.Modifiers.All(modifier => !modifier.IsKind(SyntaxKind.StaticKeyword)))
-				.Select(
-					member => member switch
-					{
-						PropertyDeclarationSyntax property => property.Type,
-						FieldDeclarationSyntax field => field.Declaration.Type,
-						_ => null
-					}
-				)
-				.Where(type => type?.Parent != null)
-				.Where(type => type is IdentifierNameSyntax identifier && identifier.Identifier.Text.EndsWith("CacheItemProviderKey"))
-				.Select(type => CreateDiagnosticForLocation(type.Parent!.GetLocation()))
-				.ToList();
-		}
+			.Where(type => type?.Parent != null)
+			.Where(type => type is IdentifierNameSyntax identifier && identifier.Identifier.Text.EndsWith("CacheItemProviderKey"))
+			.Select(type => CreateDiagnosticForLocation(type.Parent!.GetLocation()))
+			.ToList();
 	}
 }
