@@ -31,7 +31,9 @@ public class MindboxAnalyzer : DiagnosticAnalyzer
 			new NameOfInColumnAttributesRequiredRule(),
 			new CustomizationsCrossReferenceProhibitedRule(),
 			new CacheItemProviderKeyMustBeStaticRule(),
-			new NoTestWithoutOwnerRule()
+			new NoTestWithoutOwnerRule(),
+			new ModelApplicationHostControllerServiceLocatorProhibitedRule(),
+			new NamedObjectModelConfigurationRegisterProhibitedRule()
 		};
 
 		_supportedDiagnostics =
@@ -48,6 +50,22 @@ public class MindboxAnalyzer : DiagnosticAnalyzer
 		context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 		context.EnableConcurrentExecution();
 		context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+		context.RegisterSemanticModelAction(AnalyzeSemanticModel);
+	}
+
+	private static void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
+	{
+		var allDiagnostics = new List<Diagnostic>();
+
+		foreach (var modelAnalyzer in _rules.OfType<ISemanticModelAnalyzerRule>())
+		{
+			modelAnalyzer.AnalyzeModel(context.SemanticModel, out var foundProblems);
+			if (foundProblems != null)
+				allDiagnostics.AddRange(foundProblems);
+		}
+
+		foreach (var diagnostic in allDiagnostics)
+			context.ReportDiagnostic(diagnostic);
 	}
 
 	private static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)

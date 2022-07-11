@@ -12,11 +12,11 @@ public class NoMoreThanOneLineBetweenSimilarDeclarationsRule : AnalyzerRule, ITr
 	public NoMoreThanOneLineBetweenSimilarDeclarationsRule()
 		: base(
 			ruleId: "Mindbox1003",
-			title: "Между членами одного вида и видимости, совпадающими по static/instance," +
-					" должно быть не более одной пустой строки",
-			messageFormat: "Более одной пустой строки между членами одного вида и видимости",
-			description: "Проверяет, что в форматировании кода между членами одного вида и видимости," +
-						" совпадающими по static/instance, не более одной пустой строки")
+			title: "There should not be more than one line between members of one kind and visibility " +
+				   "that match by static/instance",
+			messageFormat: "More than one line between members of one kind and visibility",
+			description: "Makes sure that there should not be more than one line between members of one kind " +
+						 "and visibility that match by static/instance")
 	{
 	}
 

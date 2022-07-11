@@ -10,9 +10,9 @@ public class TabsShouldOnlyBeUsedForIndentationRule : AnalyzerRule, ISingleLineA
 	public TabsShouldOnlyBeUsedForIndentationRule()
 		: base(
 			ruleId: "Mindbox1008",
-			title: "Символ табуляции должен использоваться только для отступов в начале строки или в конце строки",
-			messageFormat: "Табуляции используется посреди строки",
-			description: "Символ табуляции должен использоваться только для отступов в начале строки или в конце строки")
+			title: "Tabs should only be used in the beginning or the end of a line",
+			messageFormat: "Tabs are used in the middle of a line",
+			description: "Makes sure that tabs are only used in the beginning or the end of a line")
 	{
 	}
 

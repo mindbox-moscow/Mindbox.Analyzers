@@ -12,10 +12,10 @@ public class LineIsTooLongRule : AnalyzerRule, ISingleLineAnalyzerRule
 	public LineIsTooLongRule()
 		: base(
 			ruleId: "Mindbox1000",
-			title: "Строки C# кода не должны быть длинее " + MaxLineLength + " символов",
-			messageFormat: "Строка длинее " + MaxLineLength + " символов",
-			description: "Проверяет, что строки C# кода не длинее " + MaxLineLength + " символов " +
-				"(табуляция считается за " + SymbolsPerTab + " символа, пробельные символы в конце строки игнорируются)")
+			title: "C# code lines shouldn't be longer than " + MaxLineLength + " symbols",
+			messageFormat: "Line is longer than " + MaxLineLength + " symbols",
+			description: "Makes sure that lines of C# core are shorter than " + MaxLineLength + " symbols " +
+						 "(tabs count as " + SymbolsPerTab + " spaces, trailing spaces are not considered)")
 	{
 	}
 

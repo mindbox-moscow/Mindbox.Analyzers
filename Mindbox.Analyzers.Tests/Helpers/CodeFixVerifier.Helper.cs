@@ -87,4 +87,3 @@ public abstract partial class CodeFixVerifier : DiagnosticVerifier
 		return root.GetText().ToString();
 	}
 }
-
