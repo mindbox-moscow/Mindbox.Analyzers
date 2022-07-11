@@ -15,7 +15,7 @@ public class LineIsTooLongRule : AnalyzerRule, ISingleLineAnalyzerRule
 			title: "C# code lines shouldn't be longer than " + MaxLineLength + " symbols",
 			messageFormat: "Line is longer than " + MaxLineLength + " symbols",
 			description: "Makes sure that lines of C# core are shorter than " + MaxLineLength + " symbols " +
-			             "(tabs count as " + SymbolsPerTab + " spaces, trailing spaces are not considered)")
+						 "(tabs count as " + SymbolsPerTab + " spaces, trailing spaces are not considered)")
 	{
 	}
 

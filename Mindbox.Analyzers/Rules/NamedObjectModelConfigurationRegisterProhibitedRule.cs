@@ -19,7 +19,7 @@ public class NamedObjectModelConfigurationRegisterProhibitedRule : AnalyzerRule,
 
 	public void AnalyzeModel(SemanticModel model, out ICollection<Diagnostic> foundProblems)
 	{
-		var apcNames = new[] {"INamedObjectModelConfiguration", "NamedObjectModelConfiguration"};
+		var apcNames = new[] { "INamedObjectModelConfiguration", "NamedObjectModelConfiguration" };
 
 		foundProblems = model.SyntaxTree
 			.GetRoot()

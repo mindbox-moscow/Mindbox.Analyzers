@@ -13,10 +13,10 @@ public class NoMoreThanOneLineBetweenSimilarDeclarationsRule : AnalyzerRule, ITr
 		: base(
 			ruleId: "Mindbox1003",
 			title: "There should not be more than one line between members of one kind and visibility " +
-			       "that match by static/instance",
+				   "that match by static/instance",
 			messageFormat: "More than one line between members of one kind and visibility",
 			description: "Makes sure that there should not be more than one line between members of one kind " +
-			             "and visibility that match by static/instance")
+						 "and visibility that match by static/instance")
 	{
 	}
 

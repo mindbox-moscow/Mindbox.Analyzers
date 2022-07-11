@@ -12,10 +12,10 @@ public class MultiLineMembersShouldBeSeparatedByABlankLineRule : AnalyzerRule, I
 		: base(
 			ruleId: "Mindbox1004",
 			title: "Multiline methods, properties, inner classes, structs, enums and interfaces " +
-			       "should be separated from other members with at least one empty line",
+				   "should be separated from other members with at least one empty line",
 			messageFormat: "Multiline class member should be separated with at least one empty line",
 			description: "Makes sure that multiline methods, properties, inner classes, structs, enums and " +
-			             "interfaces are separated from other members with at least one empty line")
+						 "interfaces are separated from other members with at least one empty line")
 	{
 	}
 

@@ -170,4 +170,3 @@ public abstract partial class DiagnosticVerifier
 	}
 	#endregion
 }
-

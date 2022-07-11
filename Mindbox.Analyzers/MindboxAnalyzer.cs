@@ -52,7 +52,7 @@ public class MindboxAnalyzer : DiagnosticAnalyzer
 		context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
 		context.RegisterSemanticModelAction(AnalyzeSemanticModel);
 	}
-	
+
 	private static void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
 	{
 		var allDiagnostics = new List<Diagnostic>();

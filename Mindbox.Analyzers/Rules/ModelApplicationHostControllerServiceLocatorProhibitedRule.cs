@@ -19,7 +19,7 @@ public class ModelApplicationHostControllerServiceLocatorProhibitedRule : Analyz
 
 	public void AnalyzeModel(SemanticModel model, out ICollection<Diagnostic> foundProblems)
 	{
-		var apcNames = new[] {"ModelApplicationHostController", "ApplicationHostController"};
+		var apcNames = new[] { "ModelApplicationHostController", "ApplicationHostController" };
 
 		foundProblems = model.SyntaxTree
 			.GetRoot()
