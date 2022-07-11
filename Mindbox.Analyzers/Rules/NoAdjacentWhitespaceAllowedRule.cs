@@ -10,9 +10,9 @@ public class NoAdjacentWhitespaceAllowedRule : AnalyzerRule, ITreeAnalyzerRule
 	public NoAdjacentWhitespaceAllowedRule()
 		: base(
 			ruleId: "Mindbox1009",
-			title: "В форматировании кода не должно быть двух пробельных символов подряд",
-			messageFormat: "Два пробельных символа подряд",
-			description: "Проверяет, что в форматировании кода нет двух пробельных символов подряд")
+			title: "There should be no two or more consecutive whitespace characters",
+			messageFormat: "Two or more consecutive whitespace characters. Please remove the extra",
+			description: "Makes sure that there should be no two or more consecutive whitespace characters")
 	{
 	}
 
